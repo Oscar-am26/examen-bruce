@@ -1,0 +1,3417 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Spelling Bee Karate Kids</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería de Confeti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- jsPDF para certificados -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Iconos Divertidos -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <!-- Google Fonts: Fredoka para niños -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&display=swap');
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            overflow: hidden;
+            user-select: none;
+            background-color: #4A90D9;
+            background-image:
+                radial-gradient(circle at 15% 20%, rgba(255,255,255,0.30) 0%, transparent 48%),
+                radial-gradient(circle at 85% 78%, rgba(20,60,130,0.22) 0%, transparent 48%),
+                url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpolygon points='28,2 54,17 54,47 28,62 2,47 2,17' fill='none' stroke='rgba(255,255,255,0.13)' stroke-width='1.5'/%3E%3Cpolygon points='28,64 54,79 54,100 2,100 2,79' fill='none' stroke='rgba(255,255,255,0.13)' stroke-width='1.5'/%3E%3C/svg%3E");
+            background-size: 100% 100%, 100% 100%, 56px 100px;
+            transition: background-color 0.7s ease;
+        }
+        /* Colores suaves por categoría */
+        body.cat-science       { background-color: #2A9D8F; }  /* teal */
+        body.cat-content       { background-color: #4C9A52; }  /* verde suave */
+        body.cat-custom        { background-color: #7C5CC4; }  /* morado suave */
+        body.cat-certification { background-color: #4A7FC1; }  /* azul escolar */
+
+        /* --- Animaciones Personalizadas --- */
+        .bounce-click:active {
+            transform: scale(0.95);
+        }
+
+        .float-bee {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-10px) rotate(2deg);
+            }
+        }
+
+        .pop-in {
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes popIn {
+            from {
+                opacity: 0;
+                transform: scale(0.5);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .wood-texture {
+            background-color: #D97706;
+            background-image: linear-gradient(rgba(255, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 20px 20px;
+            border-bottom: 6px solid #92400E;
+        }
+
+        /* Ocultar elementos visualmente pero mantenerlos en el DOM */
+        .hidden-screen {
+            display: none !important;
+        }
+
+        /* Estilo Karate Belt */
+        .belt-stripe {
+            width: 10px;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            position: absolute;
+            right: 15px;
+            top: 0;
+        }
+
+        @keyframes pulse-ring {
+            0%   { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0.6); }
+            70%  { box-shadow: 0 0 0 14px rgba(251, 146, 60, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(251, 146, 60, 0); }
+        }
+        .btn-speaking {
+            background-color: #f97316 !important;
+            animation: pulse-ring 1.1s ease-out infinite;
+        }
+        @keyframes heart-shake {
+            0%,100% { transform: scale(1) rotate(0deg); }
+            20%     { transform: scale(1.5) rotate(-20deg); }
+            60%     { transform: scale(0.8) rotate(15deg); }
+        }
+        .heart-shake { animation: heart-shake 0.45s ease-in-out; }
+
+        @keyframes flash-red {
+            0%,100% { background-color: transparent; }
+            40%     { background-color: rgba(239,68,68,0.15); }
+        }
+        .flash-red { animation: flash-red 0.5s ease-in-out; }
+
+        @keyframes ping-once {
+            0%   { transform: scale(1); opacity: 1; }
+            80%  { transform: scale(1.4); opacity: 0; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+        .animate-ping-once {
+            animation: ping-once 0.8s ease-out;
+        }
+
+
+        /* ---- Touch Keyboard ---- */
+        .kb-key {
+            height: clamp(38px, 7vw, 52px);
+            border-radius: 10px;
+            border-bottom: 4px solid rgba(0,0,0,0.18);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 900; font-size: clamp(16px, 3.5vw, 24px);
+            color: white;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+            cursor: pointer; user-select: none; -webkit-user-select: none;
+            transition: transform 0.07s, border-bottom-width 0.07s, opacity 0.07s;
+        }
+        .kb-key:hover  { opacity: 0.85; }
+        .kb-key:active { transform: translateY(2px); border-bottom-width: 2px; }
+        .kb-backspace  { font-size: clamp(14px, 3vw, 20px) !important;
+                         background: linear-gradient(135deg,#94a3b8,#64748b) !important; }
+
+        /* ---- Piano Keys (grid 9-col, no scroll) ---- */
+        #piano-keys {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 3px;
+        }
+        .piano-key {
+            width: 100%; height: clamp(48px, 10vw, 68px);
+            border-radius: 0 0 8px 8px;
+            border-bottom: 4px solid rgba(0,0,0,0.25);
+            display: flex; align-items: flex-end; justify-content: center;
+            padding-bottom: 4px;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 900; font-size: clamp(12px, 2.5vw, 16px);
+            color: white;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.35);
+            cursor: pointer; user-select: none; -webkit-user-select: none;
+            transition: transform 0.07s, border-bottom-width 0.07s, opacity 0.07s;
+        }
+        .piano-key:hover  { opacity: 0.85; }
+        .piano-key:active, .piano-key.pressed { transform: translateY(3px); border-bottom-width: 1px; }
+
+        /* ---- Phonics Letter Slots ---- */
+        .ph-slot {
+            width: clamp(34px, 9vw, 50px);
+            height: clamp(42px, 11vw, 60px);
+            border-radius: 10px;
+            border-bottom: 4px solid rgba(0,0,0,0.15);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 900; font-size: clamp(15px, 4vw, 22px);
+            transition: all 0.25s cubic-bezier(0.175,0.885,0.32,1.275);
+        }
+        @keyframes slot-pop {
+            0%   { transform: scale(1); }
+            40%  { transform: scale(1.25); }
+            100% { transform: scale(1); }
+        }
+        .ph-slot.pop { animation: slot-pop 0.35s ease-out; }
+
+        /* ---- Phonics A-Z Keyboard ---- */
+        .ph-key {
+            height: clamp(30px, 6.5vw, 44px);
+            border-radius: 8px;
+            border-bottom: 3px solid rgba(0,0,0,0.22);
+            display: flex; align-items: center; justify-content: center;
+            font-family: 'Fredoka', sans-serif;
+            font-weight: 900; font-size: clamp(12px, 3vw, 18px);
+            color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.25);
+            cursor: pointer; user-select: none; -webkit-user-select: none;
+            touch-action: manipulation;
+            transition: transform 0.07s, border-bottom-width 0.07s, filter 0.12s;
+        }
+        .ph-key:active { transform: translateY(2px); border-bottom-width: 1px; }
+        .ph-key.correct-flash { filter: brightness(1.3); transform: scale(1.15) translateY(0); transition: none; }
+        .ph-key.wrong-flash   { filter: brightness(0.6); transition: none; }
+    </style>
+</head>
+
+<body class="h-screen w-screen flex flex-col text-slate-800">
+
+    <!-- HEADER DE AVENTURA -->
+    <header
+        class="bg-white/95 backdrop-blur border-b-4 border-yellow-400 px-3 py-2 shadow-lg z-20 flex justify-between items-center shrink-0">
+        <button id="home-btn"
+            class="hidden text-orange-500 hover:text-orange-700 bg-orange-100 p-2 rounded-xl transition-colors">
+            <i class="fas fa-home text-2xl"></i>
+        </button>
+
+        <!-- Logo Central -->
+        <div class="flex items-center gap-2 mx-auto sm:mx-0 bounce-click cursor-pointer select-none" onclick="goToHome()">
+            <div class="bg-gradient-to-br from-yellow-300 to-orange-500 text-white w-12 h-12 rounded-2xl shadow-md border-b-4 border-orange-600 flex items-center justify-center shrink-0">
+                <span class="text-2xl leading-none" style="filter:drop-shadow(0 1px 2px rgba(0,0,0,0.3))">🐝</span>
+            </div>
+            <div class="flex flex-col leading-none gap-0.5">
+                <span class="text-[10px] font-black text-orange-400 uppercase tracking-[0.2em] leading-none">English</span>
+                <div class="flex items-baseline gap-1">
+                    <span class="text-2xl font-black text-slate-800 leading-none">Karate</span>
+                    <span class="text-2xl font-black leading-none" style="color:#FF9800;text-shadow:0 2px 0 #E65100">Bee</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="flex items-center gap-2">
+            <div class="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-3 py-1.5 rounded-full font-black border-b-2 border-orange-600 flex items-center gap-1.5 shadow-sm text-sm">
+                <i class="fas fa-star text-white text-xs"></i>
+                <span id="score-display">0</span>
+            </div>
+            <button id="header-user" class="hidden bg-white/80 text-slate-600 px-2 py-1.5 rounded-lg text-xs font-black border border-white/60 flex items-center gap-1 cursor-pointer hover:bg-white transition-colors" onclick="openUserModal()">
+                <span id="header-user-bee">🐝</span>
+                <span id="header-user-name">—</span>
+            </button>
+            <button onclick="toggleSettings()"
+                class="bg-slate-100 text-slate-500 p-2 rounded-full hover:bg-slate-200 transition-colors">
+                <i class="fas fa-gear text-lg"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Toast de notificaciones -->
+    <div id="toast-notification" class="hidden fixed top-4 left-1/2 -translate-x-1/2 z-[300] bg-white rounded-2xl shadow-2xl px-5 py-3 border-4 border-yellow-400 text-center font-black text-slate-800 text-sm max-w-xs pop-in">
+        <div id="toast-content"></div>
+    </div>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="flex-1 relative overflow-hidden flex flex-col items-center justify-center p-4">
+
+        <!-- ==============================
+             VISTA 0: LANDING PAGE
+             ============================== -->
+        <div id="view-home"
+            class="w-full max-w-5xl h-full flex flex-col items-center justify-center p-4 relative text-center">
+
+            <div class="animate-float mb-4 pop-in relative">
+                <img src="assets/bee_avatar.png"
+                    onerror="this.onerror=null;this.src='https://cdn-icons-png.flaticon.com/512/4693/4693156.png'"
+                    alt="Karate Bee"
+                    class="w-44 h-44 sm:w-56 sm:h-56 object-contain filter drop-shadow-2xl">
+                <!-- Belt badge -->
+                <div id="home-bee-belt"
+                    class="absolute -bottom-1 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-xs font-black border-2 whitespace-nowrap shadow-md"
+                    style="background:#f8fafc;border-color:#94a3b8;color:#475569">
+                    🤍 Blanco
+                </div>
+            </div>
+
+            <!-- Streak diario -->
+            <div id="home-streak"
+                class="hidden bg-white/80 backdrop-blur-sm px-5 py-1.5 rounded-full font-black text-slate-600 mb-2 shadow-sm border border-white/60 text-sm">
+                🔥 Día 1
+            </div>
+
+            <h1
+                class="text-5xl md:text-7xl font-black text-orange-500 tracking-tight mb-2 drop-shadow-sm leading-tight mt-2">
+                Spelling <br> <span class="text-yellow-400">Bee</span>
+            </h1>
+
+            <div
+                class="bg-white/80 backdrop-blur-sm px-6 py-2 rounded-full font-bold text-slate-500 mb-8 shadow-sm border border-white">
+                ¡Aprende inglés como un campeón!
+            </div>
+
+            <button onclick="switchView('view-dojo')"
+                class="group relative inline-flex items-center justify-center px-12 py-5 font-black text-white text-2xl transition-all duration-200 bg-gradient-to-br from-orange-400 to-orange-600 rounded-3xl shadow-xl hover:scale-105 hover:shadow-2xl border-b-8 border-orange-700 active:border-b-0 active:translate-y-2">
+                <i class="fas fa-play mr-3 text-3xl group-hover:rotate-12 transition-transform"></i>
+                JUGAR AHORA
+            </button>
+
+        </div>
+
+        <!-- ==============================
+             VISTA 1: DOJO (SELECCIÓN)
+             ============================== -->
+        <div id="view-dojo" class="hidden-screen w-full max-w-5xl h-full overflow-y-auto pb-20 p-2">
+
+            <div class="flex items-center gap-3 mt-4 mb-6">
+                <button onclick="switchView('view-home')"
+                    class="bg-white/80 hover:bg-white text-slate-600 hover:text-blue-600 font-bold px-3 py-2 rounded-xl shadow border-2 border-white/60 flex items-center gap-1.5 text-sm transition-all backdrop-blur shrink-0">
+                    <i class="fas fa-arrow-left"></i> Inicio
+                </button>
+                <div class="flex-1 text-center">
+                    <h2 class="text-3xl font-bold text-white drop-shadow pop-in">¡Elige tu Dojo!</h2>
+                    <p class="text-white/80 font-medium text-sm">Completa misiones para ganar cinturones.</p>
+                </div>
+                <div class="w-20 shrink-0"></div>
+            </div>
+
+            <!-- Grid de Categorías -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <!-- ENTRENAMIENTO PERSONALIZADO (NUEVO) -->
+                <div onclick="openCustomSetup()"
+                    class="bg-white rounded-3xl shadow-xl border-b-8 border-blue-200 p-6 transform hover:-translate-y-2 transition-all cursor-pointer group relative overflow-hidden ring-4 ring-blue-50 order-first md:order-last">
+                    <div
+                        class="absolute -right-10 -top-10 bg-blue-100 w-40 h-40 rounded-full opacity-50 group-hover:scale-125 transition-transform">
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <img src="https://img.icons8.com/fluency/96/edit-property.png" alt="Custom"
+                            class="mb-4 drop-shadow-md group-hover:scale-110 transition-transform">
+                        <h3 class="text-xl font-bold text-blue-600 mb-1 text-center">Entrenamiento Personalizado</h3>
+                        <span
+                            class="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">Custom
+                            Study</span>
+                        <p class="text-xs text-slate-400 mt-2 font-bold text-center">Elige tus palabras</p>
+                    </div>
+                </div>
+
+                <!-- Dojo Certification -->
+                <div onclick="openLevelMap('certification')"
+                    class="bg-white rounded-3xl shadow-xl border-b-8 border-purple-200 p-6 transform hover:-translate-y-2 transition-all cursor-pointer group relative overflow-hidden">
+                    <div
+                        class="absolute -right-10 -top-10 bg-purple-100 w-40 h-40 rounded-full opacity-50 group-hover:scale-125 transition-transform">
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <img src="https://img.icons8.com/fluency/96/student-center.png" alt="School"
+                            class="mb-4 drop-shadow-md group-hover:scale-110 transition-transform">
+                        <h3 class="text-2xl font-bold text-purple-600 mb-1">Escuela</h3>
+                        <span
+                            class="bg-purple-100 text-purple-600 px-3 py-1 rounded-full text-xs font-bold uppercase">Certification</span>
+                        <p class="text-xs text-slate-400 mt-2 font-bold">140 Palabras</p>
+                    </div>
+                </div>
+
+                <!-- Dojo Science -->
+                <div onclick="openLevelMap('science')"
+                    class="bg-white rounded-3xl shadow-xl border-b-8 border-emerald-200 p-6 transform hover:-translate-y-2 transition-all cursor-pointer group relative overflow-hidden">
+                    <div
+                        class="absolute -right-10 -top-10 bg-emerald-100 w-40 h-40 rounded-full opacity-50 group-hover:scale-125 transition-transform">
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <img src="https://img.icons8.com/fluency/96/microscope.png" alt="Science"
+                            class="mb-4 drop-shadow-md group-hover:scale-110 transition-transform">
+                        <h3 class="text-2xl font-bold text-emerald-600 mb-1">Ciencia</h3>
+                        <span
+                            class="bg-emerald-100 text-emerald-600 px-3 py-1 rounded-full text-xs font-bold uppercase">Science
+                            Words</span>
+                        <p class="text-xs text-slate-400 mt-2 font-bold">145 Palabras</p>
+                    </div>
+                </div>
+
+                <!-- Dojo Content -->
+                <div onclick="openLevelMap('content')"
+                    class="bg-white rounded-3xl shadow-xl border-b-8 border-orange-200 p-6 transform hover:-translate-y-2 transition-all cursor-pointer group relative overflow-hidden">
+                    <div
+                        class="absolute -right-10 -top-10 bg-orange-100 w-40 h-40 rounded-full opacity-50 group-hover:scale-125 transition-transform">
+                    </div>
+                    <div class="relative z-10 flex flex-col items-center">
+                        <img src="https://img.icons8.com/fluency/96/open-book.png" alt="General"
+                            class="mb-4 drop-shadow-md group-hover:scale-110 transition-transform">
+                        <h3 class="text-2xl font-bold text-orange-600 mb-1">General</h3>
+                        <span
+                            class="bg-orange-100 text-orange-600 px-3 py-1 rounded-full text-xs font-bold uppercase">Content
+                            Words</span>
+                        <p class="text-xs text-slate-400 mt-2 font-bold">148 Palabras</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ==============================
+             VISTA 2: MAPA DE NIVELES
+             ============================== -->
+        <div id="view-map" class="hidden-screen w-full max-w-4xl h-full flex flex-col items-center">
+            <div class="flex items-center gap-3 w-full mt-4 mb-4 px-2">
+                <button onclick="switchView('view-dojo')"
+                    class="bg-white/80 hover:bg-white text-slate-600 hover:text-blue-600 font-bold px-3 py-2 rounded-xl shadow border-2 border-white/60 flex items-center gap-1.5 text-sm transition-all backdrop-blur shrink-0">
+                    <i class="fas fa-arrow-left"></i> Dojos
+                </button>
+                <h2 id="map-title" class="flex-1 text-center text-2xl font-bold text-white drop-shadow bg-white/20 px-6 py-2 rounded-full backdrop-blur">
+                    Mapa de Misiones
+                </h2>
+            </div>
+
+            <div id="levels-container" class="w-full grid grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto p-2 pb-20">
+                <!-- Se generan dinámicamente -->
+            </div>
+        </div>
+
+        <!-- ==============================
+             VISTA 3: TATAMI DE JUEGO
+             ============================== -->
+        <div id="view-game" class="hidden-screen w-full h-full flex flex-col items-center relative">
+
+            <!-- Botón regresar a dojos -->
+            <button onclick="confirmBackToDojos()"
+                class="absolute top-2 left-2 z-30 bg-white/80 hover:bg-white text-slate-600 hover:text-orange-600 font-bold px-3 py-2 rounded-xl shadow border-2 border-white/60 flex items-center gap-1.5 text-sm transition-all backdrop-blur">
+                <i class="fas fa-arrow-left text-base"></i>
+                <span class="hidden sm:inline">Dojos</span>
+            </button>
+
+
+            <div id="game-card"
+                class="bg-white rounded-3xl shadow-2xl w-full max-w-2xl flex-1 flex flex-col overflow-y-auto border-4 border-white relative z-10 mb-2">
+
+                <!-- Barra Progreso -->
+                <div class="w-full h-3 bg-slate-100">
+                    <div id="game-progress"
+                        class="h-full bg-gradient-to-r from-yellow-400 to-orange-500 w-0 transition-all duration-500 rounded-r-full">
+                    </div>
+                </div>
+
+                <!-- Vidas -->
+                <div class="flex justify-center items-center gap-3 py-2 bg-white border-b border-slate-100">
+                    <span id="heart-1" class="text-2xl select-none transition-all duration-200">❤️</span>
+                    <span id="heart-2" class="text-2xl select-none transition-all duration-200">❤️</span>
+                    <span id="heart-3" class="text-2xl select-none transition-all duration-200">❤️</span>
+                </div>
+
+                <!-- Área Visual Central -->
+                <div id="game-image-area" class="min-h-0 bg-slate-50 flex items-center justify-center p-4 relative group" style="flex:1 1 0;max-height:40vh;overflow:visible;transition:max-height 0.25s ease">
+
+                    <!-- IMAGEN DE LA PALABRA (PNG) -->
+                    <img id="word-img" src=""
+                        class="max-w-full max-h-52 object-contain drop-shadow-md transition-transform duration-500 group-hover:scale-105"
+                        alt="Palabra">
+
+                    <!-- Niebla Survival Horror (visible en modo Batalla) -->
+                    <canvas id="fog-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-[8] rounded-none" style="display:none"></canvas>
+
+                    <!-- Fallback cuando no hay imagen -->
+                    <div id="word-fallback" class="hidden absolute inset-0 flex flex-col items-center justify-center gap-2 p-4">
+                        <div id="word-fallback-emoji" class="text-7xl leading-none">🐝</div>
+                        <div id="word-fallback-label" class="bg-blue-50 border-2 border-blue-200 text-blue-800 font-black text-2xl px-6 py-2 rounded-2xl shadow-sm text-center uppercase tracking-wider"></div>
+                        <div class="text-xs text-slate-400 font-semibold">Sin imagen disponible</div>
+                    </div>
+
+                    <!-- Botones de Audio — flotan sobre la imagen -->
+                    <div class="absolute bottom-0 left-0 right-0 flex justify-center items-end gap-6 translate-y-1/2 z-20 pointer-events-none">
+                        <!-- Definición -->
+                        <button id="def-btn" onclick="playDefinition()"
+                            class="pointer-events-auto bg-blue-500 hover:bg-blue-600 text-white w-16 h-16 rounded-full shadow-lg border-4 border-white flex items-center justify-center bounce-click transition-colors"
+                            title="Escuchar Definición">
+                            <i class="fas fa-question text-2xl"></i>
+                        </button>
+
+                        <!-- Palabra Principal -->
+                        <button id="word-btn" onclick="playWord()"
+                            class="pointer-events-auto bg-yellow-400 hover:bg-yellow-500 text-white w-20 h-20 rounded-full shadow-xl border-4 border-white flex items-center justify-center bounce-click -translate-y-2"
+                            title="Escuchar Palabra">
+                            <i class="fas fa-volume-up text-3xl"></i>
+                        </button>
+
+                        <!-- Deletreo -->
+                        <button id="spell-btn" onclick="playSpelling()"
+                            class="pointer-events-auto bg-purple-500 hover:bg-purple-600 text-white w-16 h-16 rounded-full shadow-lg border-4 border-white flex items-center justify-center bounce-click transition-colors"
+                            title="Deletrear">
+                            <i id="spell-icon" class="fas fa-sort-alpha-down text-2xl"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Zona de Control -->
+                <div class="pt-12 px-3 pb-3 bg-white border-t border-slate-100 flex flex-col gap-2 shrink-0">
+
+                    <!-- IPA Fonética -->
+                    <div id="ipa-display" class="hidden text-center">
+                        <span id="ipa-text" class="font-mono text-sm text-slate-500 bg-slate-50 px-3 py-0.5 rounded-full border border-slate-200 tracking-wide"></span>
+                    </div>
+
+                    <!-- 3 modos de entrada -->
+                    <div class="grid grid-cols-3 rounded-xl overflow-hidden border-2 border-slate-200 text-xs font-bold shrink-0">
+                        <button id="tab-keyboard" onclick="switchInputMode('keyboard')"
+                            class="py-2 flex items-center justify-center gap-1 bg-white text-slate-700 border-r border-slate-200 transition-all">
+                            <i class="fas fa-keyboard text-[9px]"></i>Teclado
+                        </button>
+                        <button id="tab-torneo" onclick="switchInputMode('torneo')"
+                            class="py-2 flex items-center justify-center gap-1 text-slate-400 transition-all hover:bg-slate-50 border-r border-slate-200">
+                            🏆 Torneo
+                        </button>
+                        <button id="tab-battle" onclick="switchInputMode('battle')"
+                            class="py-2 flex items-center justify-center gap-1 text-slate-400 transition-all hover:bg-slate-50">
+                            ⚔️ Batalla
+                        </button>
+                    </div>
+
+                    <!-- Input teclado -->
+                    <div class="relative" id="text-input-row">
+                        <input type="text" id="word-input" autocomplete="off"
+                            class="w-full text-center text-4xl font-black text-slate-700 bg-slate-100 rounded-2xl py-3 focus:bg-white focus:ring-4 focus:ring-yellow-200 outline-none uppercase tracking-[0.2em] transition-all shadow-inner"
+                            placeholder="...">
+                        <div id="feedback-icon"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 transition-all transform scale-50">
+                            <i class="fas fa-check-circle text-4xl text-green-500"></i>
+                        </div>
+                    </div>
+
+                    <!-- Panel Batalla -->
+                    <div id="battle-panel" class="hidden flex-col gap-2 w-full">
+                        <!-- Barra de peligro (densidad de niebla) -->
+                        <div class="flex items-center gap-2 px-1">
+                            <span class="text-xs select-none shrink-0">☀️</span>
+                            <div class="flex-1 h-2 bg-slate-200 rounded-full overflow-hidden">
+                                <div id="fog-bar" class="h-full rounded-full transition-all duration-500" style="width:0%;background:#86efac"></div>
+                            </div>
+                            <span class="text-xs select-none shrink-0">🌑</span>
+                        </div>
+                        <!-- Slots de letras -->
+                        <div id="battle-slots" class="flex flex-wrap justify-center gap-1.5 py-0.5 min-h-[44px] items-center"></div>
+                        <!-- Resultado / feedback rápido -->
+                        <div id="battle-result" class="hidden text-center font-bold text-xs py-1 px-3 rounded-xl"></div>
+                        <!-- Teclado QWERTY -->
+                        <div id="battle-keyboard" class="flex flex-col gap-1"></div>
+                        <!-- Botón siguiente -->
+                        <button id="battle-next-btn" onclick="nextWord()"
+                            class="hidden w-full bg-blue-500 hover:bg-blue-600 text-white font-black py-3 rounded-2xl shadow-lg border-b-4 border-blue-700 active:border-b-0 active:translate-y-1 transition-all text-lg uppercase tracking-wide shrink-0 sticky bottom-2 z-10">
+                            SIGUIENTE →
+                        </button>
+                    </div>
+
+                    <!-- Panel Torneo -->
+                    <div id="torneo-panel" class="hidden flex-col gap-2 w-full">
+                        <div class="flex justify-center">
+                            <div class="inline-flex items-center gap-3 bg-slate-50 border-2 border-slate-200 rounded-2xl px-5 py-2">
+                                <span class="text-3xl">🔥</span>
+                                <div class="text-center">
+                                    <div class="text-4xl font-black text-slate-600 leading-none" id="torneo-streak-count">0</div>
+                                    <div class="text-[10px] font-black text-slate-400 uppercase tracking-wider">Racha actual</div>
+                                </div>
+                                <div class="ml-1 text-center">
+                                    <div class="text-xl font-black text-slate-400" id="torneo-best-label">👑 0</div>
+                                    <div class="text-[10px] font-black text-slate-400 uppercase">Récord</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="torneo-result" class="hidden text-center font-black text-sm py-2 px-3 rounded-2xl"></div>
+                    </div>
+
+                    <!-- Panel Etimología (aparece al fallar) -->
+                    <div id="etymology-panel" class="hidden bg-amber-50 border-2 border-amber-200 rounded-2xl p-3 text-left">
+                        <div class="flex items-start gap-2">
+                            <span id="etym-flag" class="text-2xl leading-none mt-0.5">🏛️</span>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center gap-1.5 mb-0.5">
+                                    <span class="font-black text-amber-800 text-sm" id="etym-origin">Latin</span>
+                                    <span class="text-[10px] bg-amber-200 text-amber-700 px-1.5 py-0.5 rounded-full font-bold" id="etym-badge">origen</span>
+                                </div>
+                                <p class="text-xs text-amber-700 leading-snug" id="etym-rule"></p>
+                            </div>
+                        </div>
+                        <div class="mt-1.5 bg-amber-100 rounded-xl px-2.5 py-1.5 text-xs text-amber-800 leading-snug">
+                            💡 <span id="etym-tip"></span>
+                        </div>
+                        <p class="mt-1 text-xs text-amber-600">Más ejemplos: <span class="font-bold italic" id="etym-examples"></span></p>
+                    </div>
+
+                    <!-- Comprobar -->
+                    <button id="action-btn" onclick="checkAnswer()"
+                        class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-3.5 rounded-2xl shadow-lg border-b-4 border-green-700 active:border-b-0 active:translate-y-1 transition-all text-xl uppercase tracking-wide shrink-0 sticky bottom-2 z-10">
+                        Comprobar
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- ==============================
+         VISTA 4: CONFIGURACIÓN CUSTOM
+         ============================== -->
+        <div id="view-custom-setup" class="hidden-screen w-full h-full flex flex-col">
+            <!-- Header -->
+            <div class="p-4 bg-white/90 backdrop-blur shadow-sm z-10 flex items-center gap-3">
+                <button onclick="switchView('view-dojo')"
+                    class="bg-white/80 hover:bg-white text-slate-600 hover:text-blue-600 font-bold px-3 py-2 rounded-xl shadow border-2 border-white/60 flex items-center gap-1.5 text-sm transition-all shrink-0">
+                    <i class="fas fa-arrow-left"></i> Dojos
+                </button>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-700">Diseña tu Entrenamiento</h2>
+                    <p class="text-xs text-slate-500">Selecciona entre 10 y 20 palabras.</p>
+                </div>
+                <div class="ml-auto bg-slate-100 px-4 py-2 rounded-lg font-bold text-sm" id="custom-counter-box">
+                    <span id="custom-count">0</span> / 20
+                </div>
+            </div>
+
+            <!-- Scrollable Content -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-4" id="custom-accordion-container">
+            </div>
+
+            <!-- Footer Action -->
+            <div class="p-4 bg-white/90 backdrop-blur border-t border-white/50">
+                <button id="start-custom-btn" onclick="startCustomGame()" disabled
+                    class="w-full py-4 rounded-xl font-black text-white text-lg transition-all shadow-lg opacity-50 bg-slate-400 cursor-not-allowed">
+                    COMENZAR ENTRENAMIENTO
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- MODAL DE CONFIGURACIÓN -->
+    <div id="settings-modal"
+        class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl p-6 w-full max-w-sm shadow-2xl pop-in relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-4 bg-yellow-400"></div>
+
+            <h3 class="text-2xl font-bold text-slate-800 mb-6 mt-2 flex items-center gap-2">
+                <i class="fas fa-sliders-h text-yellow-500"></i> Configuración
+            </h3>
+
+            <div class="space-y-6">
+                <!-- Velocidad -->
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="font-bold text-slate-600">Velocidad (Speed)</label>
+                        <span id="speed-label"
+                            class="bg-slate-100 px-2 rounded text-xs font-bold text-slate-500 pt-1">0.8x</span>
+                    </div>
+                    <input type="range" id="rate-range" min="0.5" max="1.1" step="0.1" value="0.8"
+                        class="w-full h-3 bg-slate-200 rounded-full appearance-none accent-yellow-500 cursor-pointer"
+                        oninput="document.getElementById('speed-label').innerText = this.value + 'x'">
+                </div>
+
+                <!-- Voz -->
+                <div>
+                    <label class="block font-bold text-slate-600 mb-2">Voz del Sensei</label>
+                    <div class="relative mb-2">
+                        <select id="tts-voice-select"
+                            class="w-full p-3 bg-slate-50 border-2 border-slate-200 rounded-xl appearance-none font-medium text-slate-600 focus:border-yellow-400 focus:outline-none"
+                            onchange="onTTSVoiceChange()">
+                            <optgroup label="⚡ ElevenLabs (con internet)">
+                                <option value="el:XB0fDUnXU5powFXDhCwa">Charlotte — femenina, elegante</option>
+                                <option value="el:21m00Tcm4TlvDq8ikWAM">Rachel — femenina, amigable</option>
+                                <option value="el:EXAVITQu4vr4xnSDxMaL">Sarah — femenina, suave</option>
+                                <option value="el:XrExE9yKIg1WjnnlVkGX" selected>Matilda — femenina, cálida</option>
+                                <option value="el:9BWtsMINqrJLrRacOk9x">Aria — femenina, expresiva</option>
+                                <option value="el:onwK4e9ZLuTAKqWW03F9">Daniel — masculino, claro</option>
+                            </optgroup>
+                            <optgroup id="browser-voices-group" label="🌐 Voces del Navegador (sin internet)">
+                            </optgroup>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-4 top-4 text-slate-400 pointer-events-none"></i>
+                    </div>
+                    <p id="tts-engine-label" class="text-xs text-yellow-600 font-semibold">
+                        <i class="fas fa-bolt"></i> Usando ElevenLabs — requiere internet.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-8">
+                <button onclick="toggleSettings()"
+                    class="flex-1 bg-slate-200 text-slate-600 font-bold py-3 rounded-xl hover:bg-slate-300 transition-colors">Cerrar</button>
+                <button onclick="previewVoice()"
+                    class="flex-1 bg-blue-100 text-blue-600 font-bold py-3 rounded-xl hover:bg-blue-200 transition-colors">
+                    <i class="fas fa-volume-up"></i> Probar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANTALLA DE RESULTADOS -->
+    <div id="win-screen" class="fixed inset-0 bg-gradient-to-b from-yellow-400 to-orange-500 z-50 hidden overflow-y-auto">
+        <div class="flex flex-col items-center p-4 pt-6 pb-10 gap-3 w-full max-w-md mx-auto">
+
+            <!-- Header compacto -->
+            <div class="text-center pop-in">
+                <div class="text-5xl">🏆</div>
+                <h2 class="text-2xl font-black text-white drop-shadow leading-tight">¡Nivel Completado!</h2>
+            </div>
+
+            <!-- Stats compactos -->
+            <div class="bg-white rounded-2xl shadow-xl p-4 w-full">
+                <div class="grid grid-cols-3 gap-2 text-center mb-3">
+                    <div class="bg-green-50 rounded-xl p-2">
+                        <div class="text-xl font-black text-green-500" id="results-correct">-</div>
+                        <div class="text-xs font-bold text-slate-400 uppercase">Correctas</div>
+                    </div>
+                    <div class="bg-blue-50 rounded-xl p-2">
+                        <div class="text-xl font-black text-blue-500" id="results-time">-</div>
+                        <div class="text-xs font-bold text-slate-400 uppercase">Tiempo</div>
+                    </div>
+                    <div class="bg-yellow-50 rounded-xl p-2">
+                        <div class="text-xl font-black text-yellow-500" id="results-score">-</div>
+                        <div class="text-xs font-bold text-slate-400 uppercase">Puntos</div>
+                    </div>
+                </div>
+                <!-- Barra de precisión -->
+                <div class="flex justify-between text-xs font-bold text-slate-500 mb-1">
+                    <span>Precisión</span><span id="results-pct">0%</span>
+                </div>
+                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="results-bar" class="h-full bg-gradient-to-r from-green-400 to-emerald-500 rounded-full transition-all duration-1000 w-0"></div>
+                </div>
+            </div>
+
+            <!-- Karate Bee progress -->
+            <div id="win-belt-section" class="w-full bg-white rounded-2xl shadow-xl p-4">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-black text-slate-500 uppercase tracking-wider">Karate Bee</span>
+                    <span id="win-belt-label" class="text-xs font-black px-2 py-0.5 rounded-full border-2" style="background:#f8fafc;border-color:#94a3b8;color:#475569">🤍 Blanco</span>
+                </div>
+                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div id="win-belt-bar" class="h-full rounded-full transition-all duration-1000 w-0" style="background:#eab308"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-slate-400 font-bold mt-1">
+                    <span id="win-belt-current">0 pts</span>
+                    <span id="win-belt-next">→ Amarillo 101 pts</span>
+                </div>
+            </div>
+
+            <!-- Certificado (visible sin scroll cuando aplica) -->
+            <div id="certificate-section" class="hidden w-full">
+                <div class="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-2xl shadow-xl p-4 text-center border-2 border-yellow-300">
+                    <div class="text-4xl mb-1">🏆</div>
+                    <p class="font-black text-orange-600 mb-3 text-base">¡Felicitaciones! Mereces un certificado.</p>
+                    <input id="cert-name" type="text" placeholder="Escribe tu nombre aquí..."
+                        class="w-full text-center text-lg font-bold text-slate-700 bg-white rounded-xl py-2 px-3 mb-3 border-2 border-yellow-300 focus:border-orange-400 focus:ring-2 focus:ring-orange-200 outline-none transition-all">
+                    <button onclick="generateCertificate()"
+                        class="w-full bg-gradient-to-r from-orange-400 to-yellow-400 hover:from-orange-500 hover:to-yellow-500 text-white font-black py-3 rounded-xl shadow border-b-4 border-orange-600 active:translate-y-1 transition-all text-lg">
+                        <i class="fas fa-download mr-2"></i>Descargar Certificado PDF
+                    </button>
+                </div>
+            </div>
+
+            <!-- Lista de palabras colapsable -->
+            <details class="w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+                <summary class="px-4 py-3 font-bold text-slate-600 cursor-pointer select-none flex justify-between items-center">
+                    <span>Ver palabras</span>
+                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                </summary>
+                <div id="results-word-list" class="px-3 pb-3 space-y-1.5 max-h-48 overflow-y-auto"></div>
+            </details>
+
+            <!-- Reporte Cognitivo (solo en modo Batalla) -->
+            <details id="cognitive-section" class="w-full bg-white rounded-2xl shadow-xl overflow-hidden hidden">
+                <summary class="px-4 py-3 font-bold text-slate-600 cursor-pointer select-none flex justify-between items-center">
+                    <span>🧠 Reporte Cognitivo</span>
+                    <i class="fas fa-chevron-down text-slate-400 text-xs"></i>
+                </summary>
+                <div id="cognitive-report" class="px-4 pb-4 pt-1 space-y-3"></div>
+            </details>
+
+            <!-- Botones -->
+            <div class="flex gap-3 w-full">
+                <button onclick="closeWinScreen()"
+                    class="flex-1 bg-white/20 border-2 border-white/50 text-white font-bold py-3 px-4 rounded-full hover:bg-white/30 transition-colors">
+                    Al Mapa
+                </button>
+                <button id="next-level-btn" onclick="goToNextLevel()"
+                    class="flex-1 bg-white text-orange-500 font-black py-3 px-4 rounded-full shadow-xl hover:scale-105 transition-transform">
+                    SIGUIENTE →
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC -->
+    <script>
+        // ===============================================
+        // 0. WORD_META — Etymology + IPA for all 433 words
+        // ===============================================
+        const WORD_META = {
+            // CERTIFICATION words
+            'animal':           {o:'Latin',      p:'/ˈænɪməl/'},
+            'armchair':         {o:'French',     p:'/ˈɑːmtʃeə/'},
+            'baby':             {o:'OldEnglish', p:''},
+            'bath':             {o:'OldEnglish', p:''},
+            'bathroom':         {o:'OldEnglish', p:''},
+            'bed':              {o:'OldEnglish', p:''},
+            'bedroom':          {o:'OldEnglish', p:''},
+            'bird':             {o:'OldEnglish', p:''},
+            'big':              {o:'OldEnglish', p:''},
+            'book':             {o:'OldEnglish', p:''},
+            'bookcase':         {o:'OldEnglish', p:''},
+            'box':              {o:'OldEnglish', p:''},
+            'boy':              {o:'OldEnglish', p:''},
+            'cake':             {o:'Norse',      p:''},
+            'cat':              {o:'OldEnglish', p:''},
+            'chair':            {o:'French',     p:''},
+            'child':            {o:'OldEnglish', p:''},
+            'clean':            {o:'OldEnglish', p:''},
+            'colour':           {o:'French',     p:'/ˈkʌlə/'},
+            'crocodile':        {o:'Greek',      p:'/ˈkrɒkədaɪl/'},
+            'cupboard':         {o:'OldEnglish', p:''},
+            'dad':              {o:'OldEnglish', p:''},
+            'desk':             {o:'Latin',      p:''},
+            'dining room':      {o:'French',     p:''},
+            'donkey':           {o:'OldEnglish', p:''},
+            'door':             {o:'OldEnglish', p:''},
+            'duck':             {o:'OldEnglish', p:''},
+            'elephant':         {o:'Greek',      p:'/ˈɛlɪfənt/'},
+            'face':             {o:'French',     p:''},
+            'family':           {o:'Latin',      p:''},
+            'flat':             {o:'OldEnglish', p:''},
+            'flower':           {o:'French',     p:''},
+            'football':         {o:'OldEnglish', p:''},
+            'fries':            {o:'OldEnglish', p:''},
+            'frog':             {o:'OldEnglish', p:''},
+            'game':             {o:'OldEnglish', p:''},
+            'garden':           {o:'French',     p:''},
+            'grandfather':      {o:'OldEnglish', p:''},
+            'grandma':          {o:'OldEnglish', p:''},
+            'grandmother':      {o:'OldEnglish', p:''},
+            'grandpa':          {o:'OldEnglish', p:''},
+            'hall':             {o:'OldEnglish', p:''},
+            'hat':              {o:'OldEnglish', p:''},
+            'hippo':            {o:'Greek',      p:'/ˈhɪpəʊ/'},
+            'home':             {o:'OldEnglish', p:''},
+            'house':            {o:'OldEnglish', p:''},
+            'lamp':             {o:'Greek',      p:''},
+            'mat':              {o:'OldEnglish', p:''},
+            'mirror':           {o:'French',     p:''},
+            'mother':           {o:'OldEnglish', p:'/ˈmʌðə/'},
+            'mum':              {o:'OldEnglish', p:''},
+            'number':           {o:'French',     p:''},
+            'orange':           {o:'Arabic',     p:'/ˈɒrɪndʒ/'},
+            'painting':         {o:'French',     p:''},
+            'pen':              {o:'Latin',      p:''},
+            'pencil':           {o:'Latin',      p:''},
+            'pet':              {o:'OldEnglish', p:''},
+            'piano':            {o:'Italian',    p:'piˈænəʊ/'},
+            'right':            {o:'OldEnglish', p:'/raɪt/'},
+            'rug':              {o:'Norse',      p:''},
+            'shoe':             {o:'OldEnglish', p:''},
+            'snake':            {o:'OldEnglish', p:''},
+            'sock':             {o:'Latin',      p:''},
+            'sofa':             {o:'Arabic',     p:'/ˈsəʊfə/'},
+            'story':            {o:'French',     p:''},
+            'sweets':           {o:'OldEnglish', p:''},
+            'table':            {o:'Latin',      p:''},
+            'teeth':            {o:'OldEnglish', p:''},
+            'today':            {o:'OldEnglish', p:''},
+            'toy':              {o:'OldEnglish', p:''},
+            'answer':           {o:'OldEnglish', p:''},
+            'afternoon':        {o:'OldEnglish', p:'/ˌɑːftəˈnuːn/'},
+            'alphabet':         {o:'Greek',      p:'/ˈælfəbɛt/'},
+            'apple':            {o:'OldEnglish', p:''},
+            'ball':             {o:'OldEnglish', p:''},
+            'beach':            {o:'OldEnglish', p:''},
+            'beautiful':        {o:'French',     p:'/ˈbjuːtɪfʊl/'},
+            'bee':              {o:'OldEnglish', p:''},
+            'boot':             {o:'French',     p:''},
+            'brother':          {o:'OldEnglish', p:'/ˈbrʌðə/'},
+            'brown':            {o:'OldEnglish', p:''},
+            'car':              {o:'Latin',      p:''},
+            'chicken':          {o:'OldEnglish', p:''},
+            'children':         {o:'OldEnglish', p:''},
+            'chocolate':        {o:'Spanish',    p:'/ˈtʃɒklət/'},
+            'class':            {o:'Latin',      p:''},
+            'cousin':           {o:'French',     p:'/ˈkʌzən/'},
+            'cow':              {o:'OldEnglish', p:''},
+            'crayon':           {o:'French',     p:''},
+            'do':               {o:'OldEnglish', p:''},
+            'dog':              {o:'OldEnglish', p:''},
+            'eraser':           {o:'Latin',      p:''},
+            'evening':          {o:'OldEnglish', p:''},
+            'fantastic':        {o:'Greek',      p:'fænˈtæstɪk/'},
+            'favourite':        {o:'French',     p:'/ˈfeɪvərɪt/'},
+            'find':             {o:'OldEnglish', p:''},
+            'food':             {o:'OldEnglish', p:''},
+            'friend':           {o:'OldEnglish', p:'/frɛnd/'},
+            'giraffe':          {o:'Arabic',     p:'/dʒɪˈrɑːf/'},
+            'good':             {o:'OldEnglish', p:''},
+            'guitar':           {o:'Spanish',    p:'/ɡɪˈtɑː/'},
+            'hair':             {o:'OldEnglish', p:''},
+            'happy':            {o:'OldEnglish', p:''},
+            'have':             {o:'OldEnglish', p:''},
+            'honey':            {o:'OldEnglish', p:'/ˈhʌni/'},
+            'jeans':            {o:'French',     p:''},
+            'jellyfish':        {o:'OldEnglish', p:''},
+            'kite':             {o:'OldEnglish', p:''},
+            'learn':            {o:'OldEnglish', p:''},
+            'lesson':           {o:'French',     p:'/ˈlɛsən/'},
+            'listen':           {o:'OldEnglish', p:'/ˈlɪsən/'},
+            'little':           {o:'OldEnglish', p:'/ˈlɪtəl/'},
+            'lunch':            {o:'French',     p:''},
+            'meat':             {o:'OldEnglish', p:''},
+            'morning':          {o:'OldEnglish', p:'/ˈmɔːnɪŋ/'},
+            'mouse':            {o:'OldEnglish', p:''},
+            'music':            {o:'Greek',      p:'/ˈmjuːzɪk/'},
+            'name':             {o:'OldEnglish', p:''},
+            'park':             {o:'French',     p:''},
+            'person':           {o:'Latin',      p:''},
+            'picture':          {o:'Latin',      p:'/ˈpɪktʃə/'},
+            'please':           {o:'French',     p:'/pliːz/'},
+            'polar bear':       {o:'Greek',      p:''},
+            'question':         {o:'Latin',      p:'/ˈkwɛstʃən/'},
+            'rain':             {o:'OldEnglish', p:''},
+            'scary':            {o:'OldEnglish', p:''},
+            'school':           {o:'Greek',      p:'/skuːl/'},
+            'sea':              {o:'OldEnglish', p:''},
+            'sing':             {o:'OldEnglish', p:''},
+            'sister':           {o:'OldEnglish', p:''},
+            'skateboard':       {o:'OldEnglish', p:''},
+            'small':            {o:'OldEnglish', p:''},
+            'sorry':            {o:'OldEnglish', p:''},
+            'talk':             {o:'OldEnglish', p:''},
+            'teddy bear':       {o:'OldEnglish', p:''},
+            'thing':            {o:'OldEnglish', p:''},
+            'tiger':            {o:'Latin',      p:'/ˈtaɪɡə/'},
+            'try':              {o:'French',     p:''},
+            'ugly':             {o:'Norse',      p:'/ˈʌɡli/'},
+            'want':             {o:'Norse',      p:''},
+            // SCIENCE words
+            'absorbent':        {o:'Latin',      p:'/əbˈzɔːbənt/'},
+            'adapted':          {o:'Latin',      p:'/əˈdæptɪd/'},
+            'aquatic':          {o:'Latin',      p:'/əˈkwætɪk/'},
+            'arctic tundra':    {o:'Greek',      p:''},
+            'birth':            {o:'OldEnglish', p:''},
+            'blond hair':       {o:'French',     p:''},
+            'cactus':           {o:'Latin',      p:''},
+            'camel':            {o:'Hebrew',     p:''},
+            'clam':             {o:'OldEnglish', p:''},
+            'climb':            {o:'OldEnglish', p:''},
+            'cold':             {o:'OldEnglish', p:''},
+            'conditions':       {o:'Latin',      p:''},
+            'cool':             {o:'OldEnglish', p:''},
+            'coral':            {o:'Latin',      p:''},
+            'crawl':            {o:'Norse',      p:''},
+            'dark':             {o:'OldEnglish', p:''},
+            'desert':           {o:'Latin',      p:''},
+            'dies':             {o:'Latin',      p:''},
+            'dry':              {o:'OldEnglish', p:''},
+            'eagle':            {o:'French',     p:''},
+            'environment':      {o:'French',     p:'/ɪnˈvaɪrənmənt/'},
+            'fins':             {o:'OldEnglish', p:''},
+            'flexible':         {o:'Latin',      p:'/ˈflɛksɪbəl/'},
+            'forest':           {o:'French',     p:''},
+            'grows':            {o:'OldEnglish', p:''},
+            'habitats':         {o:'Latin',      p:''},
+            'height':           {o:'OldEnglish', p:''},
+            'hot':              {o:'OldEnglish', p:''},
+            'inherit':          {o:'Latin',      p:''},
+            'lakes':            {o:'OldEnglish', p:''},
+            'land':             {o:'OldEnglish', p:''},
+            'large':            {o:'French',     p:''},
+            'length':           {o:'OldEnglish', p:''},
+            'light':            {o:'OldEnglish', p:''},
+            'lizard':           {o:'French',     p:''},
+            'logs':             {o:'OldEnglish', p:''},
+            'mass':             {o:'Latin',      p:''},
+            'minerals':         {o:'Latin',      p:''},
+            'move':             {o:'French',     p:''},
+            'nutrients':        {o:'Latin',      p:'/ˈnjuːtriənts/'},
+            'oceans':           {o:'Latin',      p:''},
+            'offspring':        {o:'OldEnglish', p:''},
+            'plants':           {o:'Latin',      p:''},
+            'predators':        {o:'Latin',      p:'/ˈprɛdətəz/'},
+            'properties':       {o:'Latin',      p:''},
+            'reproduction':     {o:'Latin',      p:'/ˌriːprəˈdʌkʃən/'},
+            'rigid':            {o:'Latin',      p:''},
+            'rivers':           {o:'Latin',      p:''},
+            'roots':            {o:'OldEnglish', p:''},
+            'senses':           {o:'Latin',      p:''},
+            'shallow':          {o:'OldEnglish', p:''},
+            'shells':           {o:'OldEnglish', p:''},
+            'shelter':          {o:'OldEnglish', p:''},
+            'size':             {o:'French',     p:''},
+            'snail':            {o:'OldEnglish', p:''},
+            'soil':             {o:'French',     p:''},
+            'source':           {o:'French',     p:''},
+            'stem':             {o:'OldEnglish', p:''},
+            'stick insect':     {o:'OldEnglish', p:''},
+            'survive':          {o:'French',     p:''},
+            'swim':             {o:'OldEnglish', p:''},
+            'tadpole':          {o:'OldEnglish', p:''},
+            'tail':             {o:'OldEnglish', p:''},
+            'temperatures':     {o:'Latin',      p:'/ˈtɛmprɪtʃəz/'},
+            'terrestrial':      {o:'Latin',      p:'/tɪˈrɛstriəl/'},
+            'texture':          {o:'Latin',      p:''},
+            'tropical rainforest':{o:'Latin',    p:''},
+            'warm':             {o:'OldEnglish', p:''},
+            'waterproof':       {o:'OldEnglish', p:''},
+            'wet':              {o:'OldEnglish', p:''},
+            'windy':            {o:'OldEnglish', p:''},
+            'attract':          {o:'Latin',      p:''},
+            'brick':            {o:'Dutch',      p:''},
+            'bulb':             {o:'Latin',      p:''},
+            'burn':             {o:'OldEnglish', p:''},
+            'change':           {o:'Latin',      p:''},
+            'chemical':         {o:'Greek',      p:'/ˈkɛmɪkəl/'},
+            'clay':             {o:'OldEnglish', p:''},
+            'concrete':         {o:'Latin',      p:''},
+            'cotton':           {o:'Arabic',     p:''},
+            'curved':           {o:'Latin',      p:''},
+            'daytime':          {o:'OldEnglish', p:''},
+            'direction':        {o:'Latin',      p:''},
+            'earth':            {o:'OldEnglish', p:''},
+            'electricity':      {o:'Greek',      p:'/ɪˌlɛkˈtrɪsɪti/'},
+            'energy':           {o:'Greek',      p:'/ˈɛnədʒi/'},
+            'fabric':           {o:'Latin',      p:''},
+            'firefly':          {o:'OldEnglish', p:''},
+            'flashlight':       {o:'OldEnglish', p:''},
+            'floodlight':       {o:'OldEnglish', p:''},
+            'force':            {o:'Latin',      p:''},
+            'freezing':         {o:'OldEnglish', p:''},
+            'friction':         {o:'Latin',      p:''},
+            'glass':            {o:'OldEnglish', p:''},
+            'gravity':          {o:'Latin',      p:'/ˈɡrævɪti/'},
+            'ground':           {o:'OldEnglish', p:''},
+            'hard':             {o:'OldEnglish', p:''},
+            'hypothesis':       {o:'Greek',      p:'/haɪˈpɒθɪsɪs/'},
+            'investigation':    {o:'Latin',      p:'/ɪnˌvɛstɪˈɡeɪʃən/'},
+            'iron':             {o:'OldEnglish', p:''},
+            'irreversible':     {o:'Latin',      p:'/ˌɪrɪˈvɜːsɪbəl/'},
+            'leather':          {o:'OldEnglish', p:''},
+            'lightning':        {o:'OldEnglish', p:''},
+            'magnetism':        {o:'Greek',      p:'/ˈmæɡnɪtɪzəm/'},
+            'manufactured':     {o:'Latin',      p:''},
+            'materials':        {o:'Latin',      p:'/məˈtɪəriəlz/'},
+            'measure':          {o:'French',     p:''},
+            'melting':          {o:'OldEnglish', p:''},
+            'metal':            {o:'Latin',      p:''},
+            'moon':             {o:'OldEnglish', p:''},
+            'natural':          {o:'Latin',      p:''},
+            'observe':          {o:'Latin',      p:''},
+            'oil':              {o:'Latin',      p:''},
+            'plastic':          {o:'Greek',      p:''},
+            'polyester':        {o:'Greek',      p:''},
+            'predict':          {o:'Latin',      p:''},
+            'produce':          {o:'Latin',      p:''},
+            'record':           {o:'Latin',      p:''},
+            'resistance':       {o:'Latin',      p:''},
+            'result':           {o:'Latin',      p:''},
+            'reversible':       {o:'Latin',      p:''},
+            'rock':             {o:'French',     p:''},
+            'rough':            {o:'OldEnglish', p:''},
+            'runny':            {o:'OldEnglish', p:''},
+            'sand':             {o:'OldEnglish', p:''},
+            'scientist':        {o:'Latin',      p:''},
+            'see':              {o:'OldEnglish', p:''},
+            'sky':              {o:'Norse',      p:''},
+            'slow down':        {o:'OldEnglish', p:''},
+            'smooth':           {o:'OldEnglish', p:''},
+            'soft':             {o:'OldEnglish', p:''},
+            'speed up':         {o:'OldEnglish', p:''},
+            'squeeze':          {o:'OldEnglish', p:''},
+            'star':             {o:'OldEnglish', p:''},
+            'steel':            {o:'OldEnglish', p:''},
+            'straight':         {o:'OldEnglish', p:''},
+            'streetlight':      {o:'OldEnglish', p:''},
+            'stretch':          {o:'OldEnglish', p:''},
+            'strong':           {o:'OldEnglish', p:''},
+            'sun':              {o:'OldEnglish', p:''},
+            'transparent':      {o:'Latin',      p:'/trænsˈpærənt/'},
+            'weak':             {o:'OldEnglish', p:''},
+            'wool':             {o:'OldEnglish', p:''},
+            // CONTENT words
+            'airplane':         {o:'Latin',      p:''},
+            'amphibians':       {o:'Greek',      p:'/æmˈfɪbiənz/'},
+            'balloon':          {o:'Italian',    p:''},
+            'berries':          {o:'OldEnglish', p:''},
+            'boat':             {o:'OldEnglish', p:''},
+            'body':             {o:'OldEnglish', p:''},
+            'bus':              {o:'Latin',      p:''},
+            'cable car':        {o:'Latin',      p:''},
+            'calm':             {o:'French',     p:''},
+            'candle':           {o:'OldEnglish', p:''},
+            'closed':           {o:'French',     p:''},
+            'coffee':           {o:'Arabic',     p:''},
+            'communication':    {o:'Latin',      p:'/kəˌmjuːnɪˈkeɪʃən/'},
+            'cream':            {o:'French',     p:''},
+            'creep':            {o:'OldEnglish', p:''},
+            'ear':              {o:'OldEnglish', p:''},
+            'egg':              {o:'Norse',      p:''},
+            'e-mail':           {o:'Latin',      p:''},
+            'escape':           {o:'French',     p:''},
+            'eye':              {o:'OldEnglish', p:''},
+            'feathers':         {o:'OldEnglish', p:''},
+            'fierce':           {o:'French',     p:''},
+            'fight':            {o:'OldEnglish', p:''},
+            'flow':             {o:'OldEnglish', p:''},
+            'freezer':          {o:'OldEnglish', p:''},
+            'fruit':            {o:'Latin',      p:''},
+            'fur':              {o:'French',     p:''},
+            'gas':              {o:'Dutch',      p:''},
+            'gentle':           {o:'Latin',      p:''},
+            'gills':            {o:'Norse',      p:''},
+            'head':             {o:'OldEnglish', p:''},
+            'heat':             {o:'OldEnglish', p:''},
+            'horse':            {o:'OldEnglish', p:''},
+            'hunt':             {o:'OldEnglish', p:''},
+            'ice':              {o:'OldEnglish', p:''},
+            'ice pop':          {o:'OldEnglish', p:''},
+            'icicle':           {o:'OldEnglish', p:''},
+            'internet':         {o:'Latin',      p:''},
+            'kettle':           {o:'Norse',      p:''},
+            'leg':              {o:'Norse',      p:''},
+            'letters':          {o:'Latin',      p:''},
+            'liquid':           {o:'Latin',      p:''},
+            'mammals':          {o:'Latin',      p:''},
+            'melt':             {o:'OldEnglish', p:''},
+            'mixture':          {o:'Latin',      p:''},
+            'motorcycle':       {o:'Greek',      p:'/ˈməʊtəsaɪkəl/'},
+            'mouth':            {o:'OldEnglish', p:''},
+            'news':             {o:'OldEnglish', p:''},
+            'open':             {o:'OldEnglish', p:''},
+            'pasta':            {o:'Italian',    p:''},
+            'patient':          {o:'Latin',      p:'/ˈpeɪʃənt/'},
+            'peck':             {o:'OldEnglish', p:''},
+            'pinecone':         {o:'OldEnglish', p:''},
+            'plastic bag':      {o:'Greek',      p:''},
+            'popcorn':          {o:'OldEnglish', p:''},
+            'pour':             {o:'French',     p:''},
+            'radio':            {o:'Latin',      p:''},
+            'salad':            {o:'French',     p:''},
+            'salt':             {o:'OldEnglish', p:''},
+            'scales':           {o:'Norse',      p:''},
+            'skin':             {o:'Norse',      p:''},
+            'smart':            {o:'OldEnglish', p:''},
+            'solid':            {o:'Latin',      p:''},
+            'squawk':           {o:'OldEnglish', p:''},
+            'steam':            {o:'OldEnglish', p:''},
+            'sugar':            {o:'Arabic',     p:''},
+            'tea':              {o:'Chinese',    p:''},
+            'text message':     {o:'Latin',      p:''},
+            'travel':           {o:'French',     p:''},
+            'truck':            {o:'OldEnglish', p:''},
+            'vegetables':       {o:'Latin',      p:'/ˈvɛdʒɪtəbəlz/'},
+            'wings':            {o:'OldEnglish', p:''},
+            'worm':             {o:'OldEnglish', p:''},
+            'arm':              {o:'OldEnglish', p:''},
+            'arrive':           {o:'French',     p:''},
+            'ask':              {o:'OldEnglish', p:''},
+            'baker':            {o:'OldEnglish', p:''},
+            'bathtub':          {o:'OldEnglish', p:''},
+            'bored':            {o:'French',     p:''},
+            'cafeteria':        {o:'Spanish',    p:'/ˌkæfɪˈtɪəriə/'},
+            'camera':           {o:'Latin',      p:''},
+            'cell phone':       {o:'Latin',      p:''},
+            'check':            {o:'French',     p:''},
+            'classroom':        {o:'OldEnglish', p:''},
+            'clean up':         {o:'OldEnglish', p:''},
+            'clerk':            {o:'French',     p:''},
+            'clock':            {o:'Dutch',      p:''},
+            'column':           {o:'Latin',      p:''},
+            'computer':         {o:'Latin',      p:'/kəmˈpjuːtə/'},
+            'cook':             {o:'OldEnglish', p:''},
+            'couch':            {o:'French',     p:''},
+            'crossing guard':   {o:'OldEnglish', p:''},
+            'crosswalk':        {o:'OldEnglish', p:''},
+            'crowded':          {o:'OldEnglish', p:''},
+            'dig up':           {o:'OldEnglish', p:''},
+            'dirty':            {o:'OldEnglish', p:''},
+            'double-digit number':{o:'Latin',    p:''},
+            'enter':            {o:'Latin',      p:''},
+            'foot':             {o:'OldEnglish', p:''},
+            'full':             {o:'OldEnglish', p:''},
+            'grab':             {o:'Norse',      p:''},
+            'greedy':           {o:'OldEnglish', p:''},
+            'hand':             {o:'OldEnglish', p:''},
+            'headphones':       {o:'Greek',      p:''},
+            'hide':             {o:'OldEnglish', p:''},
+            'hungry':           {o:'OldEnglish', p:''},
+            'invite':           {o:'Latin',      p:''},
+            'jar':              {o:'Arabic',     p:''},
+            'kitchen':          {o:'OldEnglish', p:''},
+            'knee':             {o:'OldEnglish', p:''},
+            'knock':            {o:'OldEnglish', p:''},
+            'laptop':           {o:'OldEnglish', p:''},
+            'left':             {o:'OldEnglish', p:''},
+            'let go':           {o:'OldEnglish', p:''},
+            'librarian':        {o:'Latin',      p:''},
+            'lifeguard':        {o:'OldEnglish', p:''},
+            'litter':           {o:'French',     p:''},
+            'living room':      {o:'OldEnglish', p:''},
+            'minus sign':       {o:'Latin',      p:''},
+            'nose':             {o:'OldEnglish', p:''},
+            'pass':             {o:'French',     p:''},
+            'polite':           {o:'Latin',      p:''},
+            'poor':             {o:'French',     p:''},
+            'principal':        {o:'Latin',      p:''},
+            'put away':         {o:'OldEnglish', p:''},
+            'row':              {o:'OldEnglish', p:''},
+            'rude':             {o:'Latin',      p:''},
+            'share':            {o:'OldEnglish', p:''},
+            'sick':             {o:'OldEnglish', p:''},
+            'sink':             {o:'OldEnglish', p:''},
+            'steal':            {o:'OldEnglish', p:''},
+            'subtraction':      {o:'Latin',      p:''},
+            'swimming pool':    {o:'OldEnglish', p:''},
+            'tablet':           {o:'Latin',      p:''},
+            'take away':        {o:'OldEnglish', p:''},
+            'take turns':       {o:'OldEnglish', p:''},
+            'test score':       {o:'Latin',      p:''},
+            'thirsty':          {o:'OldEnglish', p:''},
+            'thoughtful':       {o:'OldEnglish', p:''},
+            'tired':            {o:'OldEnglish', p:''},
+            'traffic lights':   {o:'French',     p:''},
+            'visit':            {o:'Latin',      p:''},
+            'wash':             {o:'OldEnglish', p:''},
+        };
+
+        // ===============================================
+        // ORIGIN_RULES — per-origin etymology info
+        // ===============================================
+        const ORIGIN_RULES = {
+            'Latin':      {flag:'🏛️', name:'Latín',         rule:'Terminaciones -tion, -ment, -al, -ible son de origen latino',     tip:'El sonido /ʃən/ al final se escribe "-tion" en inglés (nation, question)', ex:['question','animal','number']},
+            'Greek':      {flag:'🏺', name:'Griego',         rule:'PH = sonido /f/ · CH = sonido /k/ · Y = sonido /ɪ/ o /aɪ/',      tip:'"ph" suena como /f/: photo, elephant · "ch" suena /k/: school, chorus',   ex:['school','elephant','alphabet']},
+            'French':     {flag:'🥐', name:'Francés',        rule:'Letras finales frecuentemente silenciosas, -our, -eur comunes',    tip:'Muchas palabras con "-our" y "-eur" vienen del francés: colour, favour',   ex:['colour','favourite','beautiful']},
+            'OldEnglish': {flag:'⚔️', name:'Inglés Antiguo', rule:'Palabras cortas y comunes · -ck, -gh, -ng son muy frecuentes',     tip:'La combinación "gh" puede ser silenciosa: right, night, light, might',     ex:['right','book','dog']},
+            'Norse':      {flag:'⚓', name:'Nórdico',        rule:'Los vikingos trajeron palabras cotidianas al inglés',              tip:'sky, egg, leg, knife, window son palabras de origen vikingo',             ex:['sky','egg','ugly']},
+            'Arabic':     {flag:'🌙', name:'Árabe',          rule:'Palabras árabes llegaron al inglés vía español o italiano',        tip:'El prefijo "al-" árabe se fusionó en palabras: algebra, alcohol, almanac', ex:['orange','sugar','coffee']},
+            'Spanish':    {flag:'🌶️', name:'Español',        rule:'Palabras españolas (a veces del náhuatl) mantienen su escritura',  tip:'chocolate viene del náhuatl "xocolātl" vía el español',                   ex:['chocolate','guitar','cafeteria']},
+            'Italian':    {flag:'🍕', name:'Italiano',       rule:'Palabras italianas: música, bellas artes y gastronomía',           tip:'Los términos musicales en inglés vienen del italiano: piano, forte, solo', ex:['piano','pasta','balloon']},
+            'Dutch':      {flag:'🌷', name:'Holandés',       rule:'Palabras holandesas llegaron al inglés por el comercio marítimo',  tip:'brick, clock, gas son palabras del holandés',                             ex:['brick','gas','clock']},
+            'Hebrew':     {flag:'✡️', name:'Hebreo',         rule:'Palabras hebreas llegaron al inglés a través del latín bíblico',   tip:'camel viene del hebreo antiguo "gamal"',                                  ex:['camel']},
+            'Chinese':    {flag:'🍵', name:'Chino',          rule:'Pocas palabras chinas entraron al inglés, principalmente vía té',  tip:'"tea" viene del chino "tê" a través del portugués en el siglo XVII',      ex:['tea']},
+        };
+
+        // ===============================================
+        // Etymology + IPA functions
+        // ===============================================
+        function getWordMeta(word) {
+            return WORD_META[word.toLowerCase()] || null;
+        }
+
+        function showIPA(word) {
+            const meta = getWordMeta(word);
+            const el   = document.getElementById('ipa-display');
+            const txt  = document.getElementById('ipa-text');
+            if (!el || !txt) return;
+            if (meta && meta.p) {
+                txt.innerHTML = meta.p.replace(/ə/g, '<span style="color:#f97316;font-weight:bold">ə</span>');
+                el.classList.remove('hidden');
+            } else {
+                el.classList.add('hidden');
+            }
+        }
+
+        function showEtymology(word) {
+            const meta = getWordMeta(word);
+            if (!meta) return;
+            const rule = ORIGIN_RULES[meta.o];
+            if (!rule) return;
+            const panel = document.getElementById('etymology-panel');
+            if (!panel) return;
+            document.getElementById('etym-flag').textContent    = rule.flag;
+            document.getElementById('etym-origin').textContent  = rule.name;
+            document.getElementById('etym-badge').textContent   = meta.o;
+            document.getElementById('etym-rule').textContent    = rule.rule;
+            document.getElementById('etym-tip').textContent     = rule.tip;
+            document.getElementById('etym-examples').textContent = rule.ex.join(', ');
+            panel.classList.remove('hidden');
+        }
+
+        function hideEtymology() {
+            document.getElementById('etymology-panel')?.classList.add('hidden');
+        }
+
+        // ===============================================
+        // 1. DATA (BASE DE DATOS COMPLETA)
+        // ===============================================
+        let DB = {};
+        async function loadDB() {
+            try {
+                const response = await fetch('db.json');
+                DB = await response.json();
+                console.log('DB loaded:', Object.keys(DB));
+            } catch (e) {
+                console.error('Error loading db.json:', e);
+                DB = { certification:[], science:[], content:[] };
+            }
+        }
+        loadDB();
+
+        // ===============================================
+        // ===============================================
+        // CONFIG - ElevenLabs TTS (la API key vive en .env — no poner aquí)
+        // ===============================================
+        const ELEVENLABS_MODEL    = "eleven_turbo_v2_5";
+        let   activeVoiceId       = "XrExE9yKIg1WjnnlVkGX"; // Matilda por defecto
+        let   activeTTSEngine     = "elevenlabs"; // "elevenlabs" | "browser"
+
+        // Cache en memoria: evita llamadas repetidas a la API
+        const audioCache = {};
+        let currentAudio = null;
+
+        // ===============================================
+        // 2. STATE MANAGER
+        // ===============================================
+        let state = {
+            currentCategory: null,
+            playlist: [],
+            currentIndex: 0,
+            score: 0,
+            voices: [],
+            selectedVoice: null,
+            // Vidas & resultados
+            lives: 3,
+            wordAttempts: 0,
+            results: [],
+            levelStartTime: null,
+            levelStartScore: 0,
+            currentLevelStart: 0,
+            currentLevelEnd: 0,
+        };
+
+        const synth = window.speechSynthesis;
+
+        // --- Navegación ---
+        function switchView(viewId) {
+            ['view-home', 'view-dojo', 'view-map', 'view-game', 'view-custom-setup'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('hidden-screen');
+            });
+            document.getElementById(viewId).classList.remove('hidden-screen');
+
+            const homeBtn = document.getElementById('home-btn');
+            const scoreDisplay = document.getElementById('score-display');
+
+            // Show Home Button on Map/Dojo/Custom
+            if (viewId === 'view-dojo' || viewId === 'view-map' || viewId === 'view-custom-setup') {
+                homeBtn.classList.remove('hidden');
+                // Hide score on simple menus if desired, but let's keep it everywhere for consistency
+            } else {
+                homeBtn.classList.add('hidden');
+            }
+        }
+
+        function confirmBackToDojos() {
+            if (confirm("¿Salir del nivel actual y regresar a los Dojos?")) {
+                if (battle && battle.active) { battle.active = false; fogStop(); }
+                if (currentAudio) { currentAudio.pause(); currentAudio = null; }
+                if (synth.speaking) synth.cancel();
+                switchView('view-dojo');
+            }
+        }
+
+        function setCategoryBackground(cat) {
+            document.body.className = document.body.className
+                .replace(/\bcat-\S+/g, '').trim();
+            if (cat) document.body.classList.add('cat-' + cat);
+        }
+
+        // Custom reload/home
+        function goToHome() {
+            if (confirm("¿Volver al inicio?")) {
+                switchView('view-home');
+                state.score = 0;
+                document.getElementById('score-display').innerText = '0';
+            }
+        }
+        document.getElementById('home-btn').onclick = goToHome;
+
+        // --- CUSTOM STUDY LOGIC ---
+        let selectedCustomWords = [];
+
+        function openCustomSetup() {
+            selectedCustomWords = [];
+            renderCustomAccordion();
+            updateCustomCounter();
+            switchView('view-custom-setup');
+        }
+
+        function renderCustomAccordion() {
+            const container = document.getElementById('custom-accordion-container');
+            container.innerHTML = '';
+
+            const categories = [
+                { id: 'certification', name: 'Escuela (Certification)', color: 'purple' },
+                { id: 'science', name: 'Ciencia (Science)', color: 'emerald' },
+                { id: 'content', name: 'General (Content)', color: 'orange' },
+            ];
+
+            categories.forEach(cat => {
+                const words = DB[cat.id];
+
+                // Accordion Item
+                const item = document.createElement('div');
+                item.className = 'bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden';
+
+                // Header
+                const header = document.createElement('div');
+                header.className = `p-4 bg-${cat.color}-50 flex justify-between items-center cursor-pointer hover:bg-${cat.color}-100 transition-colors`;
+                header.onclick = () => {
+                    const content = document.getElementById(`acc-content-${cat.id}`);
+                    const icon = document.getElementById(`acc-icon-${cat.id}`);
+                    content.classList.toggle('hidden');
+                    icon.classList.toggle('rotate-180');
+                };
+                header.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-${cat.color}-500"></div>
+                        <h3 class="font-bold text-slate-700">${cat.name}</h3>
+                        <span class="text-xs bg-white px-2 py-0.5 rounded text-slate-400 font-bold border border-slate-100">${words.length}</span>
+                    </div>
+                    <i id="acc-icon-${cat.id}" class="fas fa-chevron-down text-slate-400 transition-transform duration-300"></i>
+                `;
+
+                // Content (Grid of Checkboxes)
+                const content = document.createElement('div');
+                content.id = `acc-content-${cat.id}`;
+                content.className = 'hidden p-4 border-t border-slate-100 bg-slate-50/50';
+
+                const grid = document.createElement('div');
+                grid.className = 'grid grid-cols-2 sm:grid-cols-3 gap-2';
+
+                words.forEach(wordObj => {
+                    const label = document.createElement('label');
+                    label.className = 'flex items-center gap-2 p-2 bg-white rounded border border-slate-200 hover:border-blue-400 cursor-pointer select-none text-sm';
+
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.className = 'w-4 h-4 accent-blue-500 rounded';
+                    checkbox.value = JSON.stringify({ ...wordObj, _cat: cat.id }); // Store category for image path
+                    checkbox.onchange = (e) => toggleCustomWord(e.target.checked, wordObj, cat.id);
+
+                    label.appendChild(checkbox);
+                    label.appendChild(document.createTextNode(wordObj.w));
+                    grid.appendChild(label);
+                });
+
+                content.appendChild(grid);
+                item.appendChild(header);
+                item.appendChild(content);
+                container.appendChild(item);
+            });
+        }
+
+        function toggleCustomWord(checked, wordObj, categoryId) {
+            // Find if already exists
+            const idx = selectedCustomWords.findIndex(w => w.w === wordObj.w);
+
+            if (checked) {
+                if (idx === -1) selectedCustomWords.push({ ...wordObj, _customCat: categoryId }); // Track category for image loading logic if needed later
+            } else {
+                if (idx !== -1) selectedCustomWords.splice(idx, 1);
+            }
+            updateCustomCounter();
+        }
+
+        function updateCustomCounter() {
+            const count = selectedCustomWords.length;
+            const el = document.getElementById('custom-count');
+            const box = document.getElementById('custom-counter-box');
+            const btn = document.getElementById('start-custom-btn');
+
+            el.innerText = count;
+
+            // Logica visual
+            const isValid = count >= 10 && count <= 20;
+
+            if (isValid) {
+                box.className = "ml-auto bg-green-100 text-green-700 px-4 py-2 rounded-lg font-bold text-sm border border-green-200";
+                btn.disabled = false;
+                btn.classList.remove('bg-slate-400', 'cursor-not-allowed', 'opacity-50');
+                btn.classList.add('bg-green-500', 'hover:bg-green-600', 'border-b-4', 'border-green-700');
+            } else {
+                if (count > 20) box.className = "ml-auto bg-red-100 text-red-600 px-4 py-2 rounded-lg font-bold text-sm border border-red-200 animate-pulse";
+                else box.className = "ml-auto bg-slate-100 text-slate-500 px-4 py-2 rounded-lg font-bold text-sm";
+
+                btn.disabled = true;
+                btn.classList.add('bg-slate-400', 'cursor-not-allowed', 'opacity-50');
+                btn.classList.remove('bg-green-500', 'hover:bg-green-600', 'border-b-4', 'border-green-700');
+            }
+        }
+
+        function startCustomGame() {
+            if (selectedCustomWords.length < 10 || selectedCustomWords.length > 20) return;
+
+            state.currentCategory = 'custom';
+            state.playlist = shuffleArray([...selectedCustomWords]);
+            state.currentIndex = 0;
+            state.score = 0;
+            state.results = [];
+            metrics.session_data = [];
+            state.levelStartTime = Date.now();
+            state.levelStartScore = 0;
+            document.getElementById('score-display').innerText = '0';
+
+            setCategoryBackground('custom');
+            switchView('view-game');
+            loadWord();
+        }
+
+        // Helper shuffle
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        // --- Mapa de Niveles (Dojo Logic) ---
+        function openLevelMap(category) {
+            state.currentCategory = category;
+            const catNames = { certification:'📚 Escuela', science:'🔬 Ciencias', content:'🌍 General', custom:'⭐ Custom' };
+            const titleEl = document.getElementById('map-title');
+            if (titleEl) titleEl.textContent = catNames[category] || 'Mapa de Misiones';
+            setCategoryBackground(category);
+            const container = document.getElementById('levels-container');
+            container.innerHTML = '';
+
+            const words = DB[category];
+            const levelSize = 10;
+            const levels = Math.ceil(words.length / levelSize);
+
+            // Cinturones de Karate
+            const belts = [
+                { name: "White Belt", color: "bg-slate-100", border: "border-slate-300", text: "text-slate-500" },
+                { name: "Yellow Belt", color: "bg-yellow-200", border: "border-yellow-400", text: "text-yellow-700" },
+                { name: "Orange Belt", color: "bg-orange-200", border: "border-orange-400", text: "text-orange-700" },
+                { name: "Green Belt", color: "bg-green-200", border: "border-green-400", text: "text-green-700" },
+                { name: "Blue Belt", color: "bg-blue-200", border: "border-blue-400", text: "text-blue-700" },
+                { name: "Purple Belt", color: "bg-purple-200", border: "border-purple-400", text: "text-purple-700" },
+                { name: "Black Belt", color: "bg-slate-800", border: "border-black", text: "text-white" },
+            ];
+
+            for (let i = 0; i < levels; i++) {
+                const start = i * levelSize;
+                const end = Math.min(start + levelSize, words.length);
+                const belt = belts[i % belts.length];
+                const isLocked = i > 0 && false; // Future logic: Lock levels?
+
+                // Card Container
+                const btn = document.createElement('div');
+                btn.className = `relative bg-white rounded-2xl shadow-md border-2 border-slate-100 hover:shadow-xl hover:border-blue-300 transition-all cursor-pointer overflow-hidden flex flex-col group h-32`;
+                btn.onclick = () => startLevel(start, end);
+
+                btn.innerHTML = `
+                    <!-- Belt Indicator Bar (Bottom) -->
+                    <div class="h-2 w-full ${belt.color} border-t ${belt.border} absolute bottom-0 left-0"></div>
+                    
+                    <div class="p-5 flex items-center justify-between h-full">
+                        <div class="flex flex-col gap-1">
+                            <span class="text-xs font-bold text-slate-400 uppercase tracking-widest">Misión ${i + 1}</span>
+                            <h4 class="font-black text-2xl text-slate-700 group-hover:text-blue-600 transition-colors">Nivel ${i + 1}</h4>
+                            <span class="text-xs bg-slate-100 px-2 py-1 rounded text-slate-500 font-bold self-start mt-1">
+                                Palabras ${start + 1} - ${end}
+                            </span>
+                        </div>
+                        
+                        <!-- Belt Icon Circle -->
+                        <div class="${belt.color} w-14 h-14 rounded-full flex items-center justify-center border-4 ${belt.border} shadow-sm group-hover:scale-110 transition-transform">
+                            <i class="fas fa-khanda ${belt.text} text-xl"></i>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(btn);
+            }
+
+            switchView('view-map');
+        }
+
+        // --- Inicio del Juego ---
+        function startLevel(start, end) {
+            state.currentLevelStart = start;
+            state.currentLevelEnd = end;
+            state.playlist = DB[state.currentCategory].slice(start, end);
+            state.currentIndex = 0;
+            state.results = [];
+            metrics.session_data = [];
+            state.levelStartTime = Date.now();
+            state.levelStartScore = state.score;
+
+            setCategoryBackground(state.currentCategory);
+            switchView('view-game');
+            loadWord();
+        }
+
+        function loadWord() {
+            if (state.currentIndex >= state.playlist.length) {
+                showWinScreen();
+                return;
+            }
+
+            const current = state.playlist[state.currentIndex];
+
+            // Reset vidas por palabra
+            state.lives = 3;
+            state.wordAttempts = 0;
+            updateLivesDisplay();
+
+            // UI Reset
+            const input = document.getElementById('word-input');
+            const actionBtn = document.getElementById('action-btn');
+
+            input.value = '';
+            input.readOnly = (currentInputMode !== 'keyboard' && currentInputMode !== 'torneo');
+            input.disabled = false;
+            if (battle && battle.active) { battle.active = false; }
+            updateModeDisplay();
+            input.classList.remove('text-green-600', 'text-red-500', 'bg-green-50', 'bg-red-50', 'bg-orange-50', 'text-orange-500');
+
+            actionBtn.innerText = "COMPROBAR";
+            actionBtn.classList.remove('bg-blue-500', 'border-b-blue-700', 'hidden');
+            actionBtn.classList.add('bg-green-500', 'border-b-green-700');
+            actionBtn.onclick = checkAnswer;
+            // En modo batalla el botón se oculta; el sistema avanza solo
+            if (currentInputMode === 'battle') actionBtn.classList.add('hidden');
+
+            document.getElementById('feedback-icon').style.opacity = '0';
+            document.getElementById('feedback-icon').style.transform = 'scale(0.5) translateY(-50%)';
+
+            // Cargar Imagen PNG Local
+            // Support custom category mixing
+            let categoryFolder = state.currentCategory;
+            if (state.currentCategory === 'custom') {
+                // If it's custom, we need to know the origin category of the word or search all?
+                // In toggleCustomWord we stored _customCat. Let's use that.
+                if (current._customCat) categoryFolder = current._customCat;
+                else {
+                    // Fallback: try to guess or use default logic?
+                    // We can default to 'content' if unknown, or try checking DB presence
+                    // For now, let's assume we pass _customCat properly.
+                    categoryFolder = 'content'; // Fallback
+                }
+            }
+
+            const normalizedWord = current.w.toLowerCase()
+                .replace(/-/g, '_').replace(/ /g, '_').replace(/_+/g, '_').replace(/^_|_$/g, '').trim();
+            const imgPath = `assets/${categoryFolder}/${normalizedWord}.png`;
+            const imgEl = document.getElementById('word-img');
+            const fallback = document.getElementById('word-fallback');
+
+            const catEmoji = { certification:'📚', science:'🔬', content:'🌍', custom:'⭐' };
+            imgEl.style.display = 'block';
+            fallback.classList.add('hidden');
+            imgEl.onerror = function () {
+                this.onerror = null; // evitar loops
+                this.style.display = 'none';
+                document.getElementById('word-fallback-label').textContent = current.w;
+                document.getElementById('word-fallback-emoji').textContent = catEmoji[state.currentCategory] || '🐝';
+                fallback.classList.remove('hidden');
+            };
+            imgEl.src = imgPath; // asignar DESPUÉS de onerror para no perder el evento
+
+            // Progreso
+            const pct = (state.currentIndex / state.playlist.length) * 100;
+            document.getElementById('game-progress').style.width = `${pct}%`;
+
+            // IPA + Etymology reset
+            showIPA(current.w);
+            hideEtymology();
+
+            // Audio Auto
+            metricsWordStart();   // inicia cronómetro para todos los modos
+            setTimeout(() => playWord(), 600);
+            if (currentInputMode === 'battle') initBattle();
+            if (currentInputMode === 'torneo') { /* torneo uses standard keyboard flow */ }
+        }
+
+        // ===============================================
+        // 3. AUDIO ENGINE (ElevenLabs principal + Web Speech fallback)
+        // ===============================================
+
+        // --- Fallback: Web Speech API ---
+        function loadVoices() {
+            state.voices = synth.getVoices().filter(v => v.lang.startsWith('en'));
+            const preferred = state.voices.find(v =>
+                v.name.includes("Google US English") ||
+                v.name.includes("Samantha") ||
+                v.name.includes("Zira") ||
+                v.name.includes("Female")
+            );
+            state.selectedVoice = preferred || state.voices[0];
+
+            // Poblar optgroup de voces del navegador en el selector combinado
+            const group = document.getElementById('browser-voices-group');
+            if (group) {
+                group.innerHTML = '';
+                state.voices.forEach((v, i) => {
+                    const opt = document.createElement('option');
+                    opt.value = 'br:' + i;
+                    opt.text = v.name.replace('Microsoft', '').replace('Google', '').trim();
+                    group.appendChild(opt);
+                });
+            }
+        }
+
+        function onTTSVoiceChange() {
+            const sel = document.getElementById('tts-voice-select');
+            if (!sel) return;
+            const val = sel.value;
+            const label = document.getElementById('tts-engine-label');
+            // Clear cache when voice changes
+            Object.keys(audioCache).forEach(k => delete audioCache[k]);
+            if (val.startsWith('el:')) {
+                activeTTSEngine = 'elevenlabs';
+                activeVoiceId   = val.slice(3);
+                if (label) label.innerHTML = '<i class="fas fa-bolt"></i> Usando ElevenLabs — requiere internet.';
+            } else {
+                activeTTSEngine = 'browser';
+                const idx = parseInt(val.slice(3));
+                state.selectedVoice = state.voices[idx] || state.voices[0];
+                if (label) label.innerHTML = '<i class="fas fa-globe"></i> Usando voz del navegador — sin internet.';
+            }
+        }
+
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = loadVoices;
+        }
+
+        function speakFallback(text, slow = false) {
+            if (synth.speaking) synth.cancel();
+            const utter = new SpeechSynthesisUtterance(text);
+            utter.lang = 'en-US';
+            let rate = parseFloat(document.getElementById('rate-range').value);
+            if (slow) rate -= 0.3;
+            utter.rate = Math.max(0.1, rate);
+            if (state.selectedVoice) utter.voice = state.selectedVoice;
+            return new Promise(resolve => {
+                utter.onend = resolve;
+                utter.onerror = resolve;
+                synth.speak(utter);
+            });
+        }
+
+        // --- Reproducir blob de audio (devuelve Promise que resuelve al terminar) ---
+        function playAudioBlob(blob, slow = false) {
+            if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; }
+            const url = URL.createObjectURL(blob);
+            const audio = new Audio(url);
+            const rate = parseFloat(document.getElementById('rate-range').value);
+            audio.playbackRate = slow ? Math.max(0.5, rate * 0.75) : rate;
+            currentAudio = audio;
+            return new Promise(resolve => {
+                audio.onended = () => { URL.revokeObjectURL(url); resolve(); };
+                audio.onerror = () => { URL.revokeObjectURL(url); resolve(); };
+                audio.play().catch(() => resolve());
+            });
+        }
+
+        // --- ElevenLabs TTS (principal) ---
+        async function speak(text, slow = false) {
+            if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
+            if (synth.speaking) synth.cancel();
+
+            if (activeTTSEngine === 'browser') return speakFallback(text, slow);
+
+            const cacheKey = text + '__' + activeVoiceId + (slow ? '__slow' : '');
+            if (audioCache[cacheKey]) {
+                return playAudioBlob(audioCache[cacheKey], slow);
+            }
+
+            try {
+                const res = await fetch(
+                    `/api/tts/${activeVoiceId}`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            text,
+                            model_id: ELEVENLABS_MODEL,
+                            voice_settings: {
+                                stability: 0.75,
+                                similarity_boost: 0.85,
+                                style: 0.0,
+                                use_speaker_boost: true
+                            }
+                        })
+                    }
+                );
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const blob = await res.blob();
+                audioCache[cacheKey] = blob;
+                return playAudioBlob(blob, slow);
+            } catch (e) {
+                console.warn('ElevenLabs no disponible, usando voz del navegador:', e.message);
+                return speakFallback(text, slow);
+            }
+        }
+
+        function playWord()       { const w = state.playlist?.[state.currentIndex]?.w; if (w) speak(w); }
+        function playDefinition() { const d = state.playlist?.[state.currentIndex]?.d; if (d) speak(d); }
+
+        // ── Spelling button state ────────────────────────────
+        let spellingSession = 0;      // incrementa en cada llamada para invalidar loops viejos
+        let spellingCooldownTimer = null;
+
+        function setSpellingUI(active) {
+            const btn  = document.getElementById('spell-btn');
+            const icon = document.getElementById('spell-icon');
+            if (!btn) return;
+            if (active) {
+                btn.disabled = true;
+                btn.classList.add('btn-speaking', 'opacity-80', 'cursor-not-allowed');
+                btn.classList.remove('bg-purple-500', 'hover:bg-purple-600');
+                icon.className = 'fas fa-circle-notch fa-spin text-2xl';
+                btn.title = 'Deletreando…';
+            } else {
+                // Cooldown de 3 s antes de re-habilitar
+                clearTimeout(spellingCooldownTimer);
+                spellingCooldownTimer = setTimeout(() => {
+                    btn.disabled = false;
+                    btn.classList.remove('btn-speaking', 'opacity-80', 'cursor-not-allowed');
+                    btn.classList.add('bg-purple-500', 'hover:bg-purple-600');
+                    icon.className = 'fas fa-sort-alpha-down text-2xl';
+                    btn.title = 'Deletrear';
+                }, 3000);
+            }
+        }
+
+        async function playSpelling() {
+            const btn = document.getElementById('spell-btn');
+
+            // Cancelar audio en curso inmediatamente
+            spellingSession++;
+            const mySession = spellingSession;
+
+            if (currentAudio) { currentAudio.pause(); currentAudio.src = ''; currentAudio = null; }
+            if (synth.speaking) synth.cancel();
+
+            setSpellingUI(true);
+
+            const word = state.playlist[state.currentIndex].w;
+
+            // Full letter names so ElevenLabs pronounces each letter clearly
+            const PHONETICS = {
+                A:'the letter A', B:'the letter B', C:'the letter C', D:'the letter D',
+                E:'the letter E', F:'the letter F', G:'the letter G', H:'the letter H',
+                I:'the letter I', J:'the letter J', K:'the letter K', L:'the letter L',
+                M:'the letter M', N:'the letter N', O:'the letter O', P:'the letter P',
+                Q:'the letter Q', R:'the letter R', S:'the letter S', T:'the letter T',
+                U:'the letter U', V:'the letter V', W:'the letter W', X:'the letter X',
+                Y:'the letter Y', Z:'the letter Z',
+                ' ':'space', '-':'hyphen', "'":"apostrophe", '.':'dot'
+            };
+            const letters = word.split('').map(char => {
+                const upper = char.toUpperCase();
+                return PHONETICS[upper] || PHONETICS[char] || upper;
+            });
+
+            for (const letter of letters) {
+                if (spellingSession !== mySession) return; // otro click canceló este loop
+                await speak(letter);
+                if (spellingSession !== mySession) return;
+                await new Promise(r => setTimeout(r, 350));
+            }
+
+            setSpellingUI(false);
+        }
+
+        // ===============================================
+        // 4. GAME LOGIC
+        // ===============================================
+
+        function updateLivesDisplay() {
+            for (let i = 1; i <= 3; i++) {
+                const h = document.getElementById('heart-' + i);
+                if (!h) continue;
+                if (i <= state.lives) {
+                    h.textContent = '❤️';
+                    h.style.opacity = '1';
+                } else {
+                    h.textContent = '🖤';
+                    h.style.opacity = '0.35';
+                    // Animación de pérdida
+                    h.classList.remove('heart-shake');
+                    void h.offsetWidth; // reflow para reiniciar animación
+                    h.classList.add('heart-shake');
+                    setTimeout(() => h.classList.remove('heart-shake'), 500);
+                }
+            }
+        }
+
+        function checkAnswer() {
+            const input    = document.getElementById('word-input');
+            const userVal  = input.value.trim().toLowerCase();
+            const current  = state.playlist[state.currentIndex];
+            const correctVal = current.w.toLowerCase();
+            const feedback = document.getElementById('feedback-icon');
+            const btn      = document.getElementById('action-btn');
+            const gameCard = document.getElementById('view-game');
+
+            state.wordAttempts++;
+
+            if (userVal === correctVal) {
+                // ✅ CORRECTO
+                metricsKeyPress(0);
+                metricsSaveWord(current.w, true);
+                input.disabled = true;
+                input.classList.add('text-green-600', 'bg-green-50');
+                feedback.innerHTML = '<i class="fas fa-check-circle text-4xl text-green-500"></i>';
+                feedback.style.opacity = '1';
+                feedback.style.transform = 'scale(1) translateY(-50%)';
+
+                const pts = state.lives === 3 ? 10 : state.lives === 2 ? 7 : 4;
+                state.score += pts;
+                document.getElementById('score-display').innerText = state.score;
+                addToTotalScore(pts);
+
+                state.results.push({ word: current.w, correct: true, attempts: state.wordAttempts });
+
+                // Torneo mode: register correct
+                if (currentInputMode === 'torneo') torneoCorrect();
+
+                speak("Great job!");
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                }
+
+                btn.innerText = "SIGUIENTE →";
+                btn.classList.remove('bg-green-500', 'border-b-green-700');
+                btn.classList.add('bg-blue-500', 'border-b-blue-700');
+                btn.onclick = nextWord;
+
+            } else {
+                // ❌ INCORRECTO
+                state.lives--;
+
+                // Flash rojo en el card
+                gameCard.classList.remove('flash-red');
+                void gameCard.offsetWidth;
+                gameCard.classList.add('flash-red');
+
+                // Vibración (móvil)
+                if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+
+                input.classList.add('text-red-500', 'bg-red-50');
+                feedback.innerHTML = '<i class="fas fa-times-circle text-4xl text-red-500"></i>';
+                feedback.style.opacity = '1';
+                feedback.style.transform = 'scale(1) translateY(-50%)';
+
+                updateLivesDisplay();
+
+                if (state.lives <= 0) {
+                    // Sin vidas: revelar respuesta
+                    metricsError(0, current.w[0]?.toUpperCase() || '?', userVal[0]?.toUpperCase() || '?');
+                    metricsSaveWord(current.w, false);
+                    state.results.push({ word: current.w, correct: false, attempts: state.wordAttempts });
+                    speak("The answer is " + current.w);
+
+                    // Torneo mode: reset streak on failure
+                    if (currentInputMode === 'torneo') torneoReset();
+
+                    setTimeout(() => {
+                        input.classList.remove('text-red-500', 'bg-red-50');
+                        input.classList.add('text-orange-600', 'bg-orange-50');
+                        input.value = current.w;
+                        input.disabled = true;
+                        feedback.style.opacity = '0';
+
+                        // Show etymology panel
+                        showEtymology(current.w);
+
+                        btn.innerText = "SIGUIENTE →";
+                        btn.classList.remove('bg-green-500', 'border-b-green-700');
+                        btn.classList.add('bg-orange-400', 'border-b-orange-600');
+                        btn.onclick = nextWord;
+                    }, 1500);
+
+                } else {
+                    // Torneo mode: reset streak even on partial failure
+                    if (currentInputMode === 'torneo') torneoReset();
+                    speak("Try again");
+                    setTimeout(() => {
+                        input.classList.remove('text-red-500', 'bg-red-50');
+                        input.value = '';
+                        feedback.style.opacity = '0';
+                        feedback.style.transform = 'scale(0.5) translateY(-50%)';
+                        input.focus();
+                    }, 1200);
+                }
+            }
+        }
+
+        function nextWord() {
+            state.currentIndex++;
+            loadWord();
+        }
+
+        // --- Pantalla de Resultados ---
+        function showWinScreen() {
+            const screen = document.getElementById('win-screen');
+            screen.classList.remove('hidden');
+            setTimeout(updateWinBeltDisplay, 400);
+
+            const total   = state.results.length || state.playlist.length;
+            const correct = state.results.filter(r => r.correct).length;
+            const pct     = total > 0 ? Math.round((correct / total) * 100) : 0;
+            const elapsed = Math.round((Date.now() - state.levelStartTime) / 1000);
+            const mins    = Math.floor(elapsed / 60);
+            const secs    = elapsed % 60;
+            const levelScore = state.score - state.levelStartScore;
+
+            document.getElementById('results-correct').textContent = `${correct}/${total}`;
+            document.getElementById('results-time').textContent    = `${mins}:${secs.toString().padStart(2,'0')}`;
+            document.getElementById('results-score').textContent   = levelScore;
+            document.getElementById('results-pct').textContent     = pct + '%';
+
+            // Barra de precisión
+            const bar = document.getElementById('results-bar');
+            bar.className = 'h-full rounded-full transition-all duration-1000 w-0 ' +
+                (pct >= 80 ? 'bg-gradient-to-r from-green-400 to-emerald-500'
+               : pct >= 60 ? 'bg-gradient-to-r from-yellow-400 to-orange-400'
+               :              'bg-gradient-to-r from-red-400 to-rose-500');
+            setTimeout(() => { bar.style.width = pct + '%'; }, 150);
+
+            // Lista de palabras
+            const list = document.getElementById('results-word-list');
+            list.innerHTML = '';
+            state.results.forEach(r => {
+                const div = document.createElement('div');
+                div.className = `flex items-center justify-between px-3 py-2 rounded-xl text-sm font-bold ${r.correct ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`;
+                div.innerHTML = `<span>${r.word}</span><span>${r.correct ? '✓' : '✗'}</span>`;
+                list.appendChild(div);
+            });
+
+            // Certificado
+            console.log(`[Resultados] total=${total} correct=${correct} pct=${pct}% results=`, state.results);
+            document.getElementById('certificate-section').classList.toggle('hidden', pct < 80);
+
+            // Botón siguiente nivel
+            const nextBtn = document.getElementById('next-level-btn');
+            const totalWords = DB[state.currentCategory] ? DB[state.currentCategory].length : 0;
+            if (state.currentCategory === 'custom' || (state.currentLevelEnd && state.currentLevelEnd >= totalWords)) {
+                nextBtn.classList.add('hidden');
+            } else {
+                nextBtn.classList.remove('hidden');
+            }
+
+            showCognitiveReport();
+            speak("Congratulations! Level complete!");
+
+            if (typeof confetti === 'function') {
+                const end = Date.now() + 3500;
+                (function frame() {
+                    confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 } });
+                    confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 } });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+            }
+        }
+
+        function closeWinScreen() {
+            document.getElementById('win-screen').classList.add('hidden');
+            switchView('view-map');
+        }
+
+        function goToNextLevel() {
+            document.getElementById('win-screen').classList.add('hidden');
+
+            // Calculate next range
+            const currentSize = state.currentLevelEnd - state.currentLevelStart;
+            const nextStart = state.currentLevelEnd;
+            const nextEnd = Math.min(nextStart + currentSize, DB[state.currentCategory].length);
+
+            startLevel(nextStart, nextEnd);
+        }
+
+        // --- Settings ---
+        function toggleSettings() {
+            const modal = document.getElementById('settings-modal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+            if (!modal.classList.contains('hidden')) loadVoices();
+        }
+
+        function previewVoice() { speak("Hello! I am the Karate Bee spelling teacher!"); }
+
+        // ===============================================
+        // 6. CERTIFICADO PDF
+        // ===============================================
+        function generateCertificate() {
+            if (!window.jspdf) { alert('PDF no disponible. Verifica tu conexion.'); return; }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+            const W = doc.internal.pageSize.getWidth();
+            const H = doc.internal.pageSize.getHeight();
+
+            // --- Stats ---
+            const total      = state.results.length;
+            const correct    = state.results.filter(r => r.correct).length;
+            const pct        = total > 0 ? Math.round((correct / total) * 100) : 0;
+            const levelScore = state.score - state.levelStartScore;
+            const catLabels  = { certification: 'Certificación Escolar', science: 'Ciencias', content: 'Contenido General', custom: 'Entrenamiento Personalizado' };
+            const levelNum   = state.currentLevelStart !== undefined ? Math.floor(state.currentLevelStart / 10) + 1 : 1;
+            const catLabel   = catLabels[state.currentCategory] || state.currentCategory || 'Spelling Bee';
+            const studentName = (document.getElementById('cert-name')?.value || '').trim() || 'Campeón';
+            const isGold     = pct === 100;
+            const dateStr    = new Date().toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+            const medal      = isGold ? 'MEDALLA DE ORO' : 'MEDALLA DE PLATA';
+
+            // --- Fondo degradado (simulado con franjas) ---
+            const colors = [[255,245,150],[255,235,100],[255,220,60],[255,200,30],[255,185,10]];
+            const stripH = H / colors.length;
+            colors.forEach(([r,g,b], i) => {
+                doc.setFillColor(r, g, b);
+                doc.rect(0, i * stripH, W, stripH + 1, 'F');
+            });
+
+            // Capa blanca semitransparente central para legibilidad
+            doc.setFillColor(255, 255, 255);
+            doc.roundedRect(18, 14, W - 36, H - 28, 8, 8, 'F');
+
+            // --- Borde exterior decorativo (naranja grueso) ---
+            doc.setDrawColor(234, 88, 12);
+            doc.setLineWidth(5);
+            doc.roundedRect(6, 6, W - 12, H - 12, 6, 6);
+            // Borde interior dorado fino
+            doc.setDrawColor(255, 193, 7);
+            doc.setLineWidth(2);
+            doc.roundedRect(10, 10, W - 20, H - 20, 5, 5);
+
+            // --- Esquinas decorativas (cuadrados de color) ---
+            const cornerSize = 10;
+            [[10,10],[W-20,10],[10,H-20],[W-20,H-20]].forEach(([x, y]) => {
+                doc.setFillColor(234, 88, 12);
+                doc.rect(x, y, cornerSize, cornerSize, 'F');
+                doc.setFillColor(255, 193, 7);
+                doc.rect(x+2, y+2, cornerSize-4, cornerSize-4, 'F');
+            });
+
+            // --- Medalla (circulo coloreado izquierda) ---
+            const medalX = 45, medalY = H / 2;
+            const medalColor = isGold ? [255, 200, 0] : [192, 192, 192];
+            doc.setFillColor(...medalColor);
+            doc.circle(medalX, medalY, 22, 'F');
+            doc.setFillColor(isGold ? 220 : 160, isGold ? 160 : 160, isGold ? 0 : 160);
+            doc.circle(medalX, medalY, 22, 'S');
+            // Anillo interior
+            doc.setFillColor(255, 255, 255);
+            doc.circle(medalX, medalY, 16, 'F');
+            doc.setFillColor(...medalColor);
+            doc.circle(medalX, medalY, 14, 'F');
+            // Texto medalla
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(20);
+            doc.setTextColor(255, 255, 255);
+            doc.text(isGold ? '1' : '2', medalX, medalY + 1, { align: 'center', baseline: 'middle' });
+            // Cinta medalla
+            doc.setFillColor(isGold ? 255 : 100, isGold ? 140 : 100, isGold ? 0 : 200);
+            doc.rect(medalX - 4, medalY - 22, 8, -12, 'F');
+            // Estrellas alrededor
+            doc.setFontSize(10);
+            doc.setTextColor(234, 88, 12);
+            ['*','*','*'].forEach((s, i) => {
+                const a = (i * 120 - 90) * Math.PI / 180;
+                doc.text(s, medalX + Math.cos(a)*27, medalY + Math.sin(a)*27, { align: 'center' });
+            });
+
+            // --- Medalla derecha (espejo) ---
+            const medalX2 = W - 45;
+            doc.setFillColor(...medalColor);
+            doc.circle(medalX2, medalY, 22, 'F');
+            doc.setFillColor(255, 255, 255);
+            doc.circle(medalX2, medalY, 16, 'F');
+            doc.setFillColor(...medalColor);
+            doc.circle(medalX2, medalY, 14, 'F');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(20);
+            doc.setTextColor(255, 255, 255);
+            doc.text(isGold ? '1' : '2', medalX2, medalY + 1, { align: 'center', baseline: 'middle' });
+            doc.setFillColor(isGold ? 255 : 100, isGold ? 140 : 100, isGold ? 0 : 200);
+            doc.rect(medalX2 - 4, medalY - 22, 8, -12, 'F');
+
+            // =========== CONTENIDO CENTRAL ===========
+            const cx = W / 2;
+
+            // Encabezado: KARATE BEE
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(150, 100, 0);
+            doc.text('KARATE BEE  *  ENGLISH SPELLING GAME', cx, 24, { align: 'center' });
+
+            // Titulo principal
+            doc.setFontSize(32);
+            doc.setTextColor(234, 88, 12);
+            doc.text('CERTIFICADO DE LOGRO', cx, 40, { align: 'center' });
+
+            // Línea decorativa
+            doc.setDrawColor(255, 193, 7);
+            doc.setLineWidth(2);
+            doc.line(cx - 70, 44, cx + 70, 44);
+
+            // Felicitaciones
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(14);
+            doc.setTextColor(100, 60, 0);
+            doc.text('¡Felicitaciones Campeón!', cx, 55, { align: 'center' });
+
+            // Texto "Este certificado se otorga a:"
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(12);
+            doc.setTextColor(100, 100, 100);
+            doc.text('Este certificado se otorga con gran orgullo a:', cx, 67, { align: 'center' });
+
+            // NOMBRE DEL ESTUDIANTE (grande)
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(36);
+            doc.setTextColor(30, 80, 180);
+            doc.text(studentName, cx, 85, { align: 'center' });
+
+            // Subrayado del nombre
+            const nameWidth = doc.getTextWidth(studentName);
+            doc.setDrawColor(30, 80, 180);
+            doc.setLineWidth(1.5);
+            doc.line(cx - nameWidth/2 - 5, 88, cx + nameWidth/2 + 5, 88);
+
+            // Por haber completado
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(12);
+            doc.setTextColor(80, 80, 80);
+            doc.text('por haber completado exitosamente:', cx, 98, { align: 'center' });
+
+            // Nombre del nivel/categoria
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(20);
+            doc.setTextColor(234, 88, 12);
+            doc.text(`${catLabel}  -  Nivel ${levelNum}`, cx, 110, { align: 'center' });
+
+            // Caja de estadísticas
+            doc.setFillColor(255, 245, 210);
+            doc.setDrawColor(255, 193, 7);
+            doc.setLineWidth(1);
+            doc.roundedRect(cx - 80, 116, 160, 22, 4, 4, 'FD');
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(11);
+            doc.setTextColor(120, 60, 0);
+            doc.text(`Puntos: ${levelScore}   |   Precision: ${pct}%   |   Correctas: ${correct} / ${total}`, cx, 130, { align: 'center' });
+
+            // Medalla texto
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(13);
+            doc.setTextColor(isGold ? 160 : 100, isGold ? 100 : 100, 0);
+            doc.text(medal, cx, 148, { align: 'center' });
+
+            // Frase motivacional
+            doc.setFont('helvetica', 'italic');
+            doc.setFontSize(10);
+            doc.setTextColor(120, 120, 120);
+            const phrase = pct === 100
+                ? '"Perfecto! Eres un maestro del deletreo!"'
+                : pct >= 90
+                ? '"Excelente trabajo! Sigue adelante, eres increible!"'
+                : '"Cada palabra aprendida es un paso hacia el exito!"';
+            doc.text(phrase, cx, 157, { align: 'center' });
+
+            // Fecha y firma
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(9);
+            doc.setTextColor(150, 150, 150);
+            doc.text(dateStr, cx, 165, { align: 'center' });
+            doc.setDrawColor(200, 200, 200);
+            doc.setLineWidth(0.5);
+            doc.line(cx - 35, 170, cx + 35, 170);
+            doc.setFontSize(8);
+            doc.text('Karate Bee - English Spelling Game', cx, 175, { align: 'center' });
+
+            doc.save(`karate-bee-nivel${levelNum}-certificado.pdf`);
+        }
+
+        // ===============================================
+        // 7. MODOS DE ENTRADA
+        // ===============================================
+        let currentInputMode = 'keyboard';
+
+        const MODE_CONFIG = {
+            keyboard: { tab:'tab-keyboard', active:'bg-white text-slate-700 border-b-2 border-yellow-400'       },
+            torneo:   { tab:'tab-torneo',   active:'bg-orange-100 text-orange-700 border-orange-200'            },
+            battle:   { tab:'tab-battle',   active:'bg-red-50 text-red-700 border-b-2 border-red-400'           },
+        };
+
+        function switchInputMode(mode) {
+            currentInputMode = mode;
+            if (battle && battle.active) { battle.active = false; fogStop(); }
+
+            const input = document.getElementById('word-input');
+
+            // Reset all tabs
+            Object.values(MODE_CONFIG).forEach(cfg => {
+                const t = document.getElementById(cfg.tab);
+                if (!t) return;
+                t.className = t.className
+                    .replace(/bg-\S+|text-\S+|border-\S+/g, '').trim()
+                    + ' py-2 flex items-center justify-center gap-1.5 text-slate-400 transition-all hover:bg-slate-50';
+            });
+
+            // Activate chosen tab
+            const cfg = MODE_CONFIG[mode];
+            if (cfg) {
+                const t = document.getElementById(cfg.tab);
+                if (t) cfg.active.split(' ').forEach(c => t.classList.add(c));
+            }
+
+            const show = (id, flex = true) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.remove('hidden');
+                if (flex) el.classList.add('flex');
+            };
+            const hide = (id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.classList.add('hidden');
+                el.classList.remove('flex');
+            };
+
+            hide('battle-panel');
+            hide('torneo-panel');
+            show('text-input-row', false);
+            input.readOnly = false;
+
+            if (mode === 'keyboard') {
+                input.focus();
+                document.getElementById('action-btn').classList.remove('hidden');
+            } else if (mode === 'torneo') {
+                show('torneo-panel');
+                show('text-input-row', false);
+                document.getElementById('action-btn').classList.remove('hidden');
+                initTorneo();
+                input.focus();
+            } else if (mode === 'battle') {
+                input.value = '';
+                input.readOnly = true;
+                hide('text-input-row');
+                show('battle-panel');
+                document.getElementById('action-btn').classList.add('hidden');
+                // Si ya hay una palabra cargada, iniciar batalla
+                if (state.playlist.length > 0 && state.currentIndex < state.playlist.length) {
+                    initBattle();
+                }
+            }
+        }
+
+        // ---- Letter helpers ----
+        function addLetter(l, sound = false) {
+            const input = document.getElementById('word-input');
+            input.value = (input.value || '') + l;
+            updateModeDisplay();
+            if (sound) playLetterSound(l);
+        }
+
+        function backspaceLetter() {
+            const input = document.getElementById('word-input');
+            input.value = input.value.slice(0, -1);
+            updateModeDisplay();
+        }
+
+        function updateModeDisplay() {
+            const val = document.getElementById('word-input').value;
+            const html = val ? [...val].map(c => `<span>${c}</span>`).join('') : '<span style="color:#cbd5e1;font-size:20px;font-weight:600">...</span>';
+            const el = document.getElementById('ptt-word-display');
+            if (el) el.innerHTML = html;
+        }
+
+        // ---- Web Audio (piano sounds) ----
+        let _audioCtx = null;
+        const LETTER_FREQS = (() => {
+            const notes = [261.6,293.7,329.6,349.2,392,440,493.9,523.3,587.3,659.3,
+                           698.5,784,880,987.8,1046.5,1174.7,1318.5,1396.9,1568,1760,
+                           1975.5,2093,2349.3,2637,2793.8,3136];
+            const map = {};
+            'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((l,i) => map[l] = notes[i]);
+            return map;
+        })();
+
+        function playLetterSound(letter) {
+            try {
+                if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const ctx = _audioCtx;
+                if (ctx.state === 'suspended') ctx.resume();
+                const freq = LETTER_FREQS[letter] || 440;
+                const osc  = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, ctx.currentTime);
+                gain.gain.setValueAtTime(0.35, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.45);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.45);
+            } catch(e) {}
+        }
+
+        // ---- Generate touch keyboard ----
+        const KB_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#06B6D4','#3B82F6','#8B5CF6',
+                           '#EC4899','#EF4444','#F97316','#EAB308','#22C55E','#06B6D4','#3B82F6',
+                           '#8B5CF6','#EC4899','#EF4444','#F97316','#EAB308','#22C55E','#06B6D4',
+                           '#3B82F6','#8B5CF6','#EC4899','#EF4444','#F97316'];
+
+
+        function flashEl(el) {
+            el.style.opacity = '0.5';
+            setTimeout(() => el.style.opacity = '', 130);
+        }
+
+        // ---- Age selection ----
+        function setStudentAge(age) {
+            if (age > 0) localStorage.setItem('kb_age', age);
+            document.getElementById('age-modal').classList.add('hidden');
+            if (age <= 0) return;
+            switchInputMode('keyboard');
+        }
+
+        // Init
+        window.onload = () => {
+            loadVoices();
+            entInit();
+
+            // Age modal is now handled by onUserReady() after user selection
+            const savedAge = parseInt(localStorage.getItem('kb_age') || '0');
+            if (savedAge) {
+                const mode = savedAge <= 7 ? 'touch' : savedAge <= 10 ? 'piano' : 'keyboard';
+                switchInputMode(mode);
+            }
+        };
+
+        // Enter key support
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (currentInputMode === 'battle') return; // batalla maneja su propio flujo
+                const btn = document.getElementById('action-btn');
+                if (!document.getElementById('view-game').classList.contains('hidden-screen')) {
+                    btn.click();
+                }
+            }
+        });
+
+        // ===============================================
+        // MODO BATALLA — Entropión
+        // ===============================================
+
+        // ===============================================
+        // SISTEMA DE MÉTRICAS COGNITIVAS
+        // ===============================================
+        const metrics = {
+            session_data: [],   // [{word,correct,length,rt,intervals,errors,attempts}]
+            _ws:  0,            // wordStart timestamp
+            _fk:  null,         // firstKey timestamp
+            _lk:  null,         // lastKey timestamp
+            _intervals: [],     // ms between keys
+            _errors:    [],     // [{pos, expected, got}]
+            _attempts:  [],     // [attempts_count per position]
+        };
+
+        // Letras fonéticamente confundibles en inglés
+        const PHONO_PAIRS = {
+            B:['D','P'],   D:['B','T'],   P:['B','F'],   F:['V','P'],
+            V:['F','B'],   G:['K','J'],   K:['G','C'],   C:['K','S'],
+            M:['N'],       N:['M','R'],   S:['Z','C'],   Z:['S'],
+            T:['D'],       I:['E','Y'],   E:['I','A'],   A:['E'],
+            J:['G','H'],   H:['J'],       R:['L','N'],   L:['R'],
+            U:['O'],       O:['U'],       W:['V'],       Y:['I','J'],
+        };
+
+        function metricsWordStart() {
+            metrics._ws = Date.now();
+            metrics._fk = null; metrics._lk = null;
+            metrics._intervals = []; metrics._errors = []; metrics._attempts = [];
+        }
+
+        function metricsKeyPress(pos) {
+            const now = Date.now();
+            if (!metrics._fk) metrics._fk = now;
+            else if (metrics._lk) metrics._intervals.push(now - metrics._lk);
+            metrics._lk = now;
+            if (!metrics._attempts[pos]) metrics._attempts[pos] = 0;
+            metrics._attempts[pos]++;
+        }
+
+        function metricsError(pos, expected, got) {
+            metrics._errors.push({ pos, expected, got });
+        }
+
+        function metricsSaveWord(word, correct) {
+            metrics.session_data.push({
+                word, correct,
+                length:    word.length,
+                rt:        metrics._fk ? metrics._fk - metrics._ws : null,
+                intervals: [...metrics._intervals],
+                errors:    [...metrics._errors],
+                attempts:  [...metrics._attempts],
+            });
+        }
+
+        function metricsCompute() {
+            const data = metrics.session_data;
+            if (!data.length) return null;
+
+            const rts = data.map(d => d.rt).filter(Boolean);
+            const avgRt = rts.length ? Math.round(rts.reduce((a,b)=>a+b,0)/rts.length) : null;
+
+            // Fatigue: second half slower than first half?
+            let fatigueIndex = 0;
+            if (rts.length >= 4) {
+                const half = Math.floor(rts.length / 2);
+                const fh = rts.slice(0,half).reduce((a,b)=>a+b,0) / half;
+                const sh = rts.slice(half).reduce((a,b)=>a+b,0) / (rts.length-half);
+                fatigueIndex = Math.round(((sh - fh) / fh) * 100);
+            }
+
+            // Working memory: accuracy on words ≥ 6 letters
+            const long  = data.filter(d => d.length >= 6);
+            const short = data.filter(d => d.length  < 6);
+            const longAcc  = long.length  ? long.filter(d=>d.correct).length  / long.length  : null;
+            const shortAcc = short.length ? short.filter(d=>d.correct).length / short.length : null;
+            const wmScore  = longAcc !== null ? Math.round(longAcc * 10) : shortAcc !== null ? Math.round(shortAcc*10) : null;
+
+            // Phonological accuracy
+            let total=0, phono=0;
+            data.forEach(d => d.errors.forEach(e => {
+                total++;
+                if ((PHONO_PAIRS[e.expected]||[]).includes(e.got)) phono++;
+            }));
+            const phonoAccuracy = total===0 ? 100 : Math.round((1 - phono/total)*100);
+
+            // Avg inter-key interval (processing speed)
+            const allIntvl = data.flatMap(d => d.intervals);
+            const avgIntvl = allIntvl.length
+                ? Math.round(allIntvl.reduce((a,b)=>a+b,0)/allIntvl.length) : null;
+
+            // Word performance for chart
+            const wordPerf = data.map(d => ({
+                word: d.word, correct: d.correct, errors: d.errors.length, rt: d.rt,
+            }));
+
+            const recommendation = fatigueIndex > 30
+                ? '⚠️ Muestra signos de fatiga cognitiva hacia el final de la sesión'
+                : avgRt && avgRt < 1400 && phonoAccuracy >= 80
+                    ? '⭐ Procesamiento por encima del promedio para su edad'
+                    : '✅ Rendimiento típico para su edad';
+
+            return { avgRt, fatigueIndex, phonoAccuracy, wmScore, avgIntvl, wordPerf, recommendation };
+        }
+
+        function showCognitiveReport() {
+            const r = metricsCompute();
+            const section = document.getElementById('cognitive-section');
+            const report  = document.getElementById('cognitive-report');
+            if (!section || !report) return;
+            // Solo mostrar si hay al menos 2 palabras con datos de tiempo de reacción
+            const hasData = r && metrics.session_data.filter(d => d.rt !== null).length >= 2;
+            if (!hasData) { section.classList.add('hidden'); return; }
+            section.classList.remove('hidden');
+
+            const card = (lbl, val, sub, bg, txt) =>
+                `<div class="rounded-xl px-3 py-2 ${bg}">
+                    <div class="text-[10px] font-bold ${txt} uppercase tracking-wide opacity-70">${lbl}</div>
+                    <div class="text-lg font-black ${txt}">${val}</div>
+                    ${sub?`<div class="text-[10px] ${txt} opacity-60">${sub}</div>`:''}
+                </div>`;
+
+            // Mini bar chart per word
+            const maxE = Math.max(...r.wordPerf.map(w=>w.errors), 1);
+            const bars = r.wordPerf.map(w => {
+                const hBar = w.errors===0 ? 4 : Math.max(8, Math.round((w.errors/maxE)*40));
+                const col  = w.correct ? (w.errors===0 ? '#22c55e' : '#f59e0b') : '#ef4444';
+                return `<div class="flex flex-col items-center gap-0.5 shrink-0">
+                    <div style="width:16px;height:${hBar}px;background:${col};border-radius:3px 3px 0 0"></div>
+                    <div class="font-bold text-slate-400" style="font-size:8px;transform:rotate(-40deg);transform-origin:top center;width:16px;text-align:center">${w.word.slice(0,3)}</div>
+                </div>`;
+            }).join('');
+
+            const fColor = r.fatigueIndex>30 ? ['bg-red-50','text-red-700'] : r.fatigueIndex>10 ? ['bg-yellow-50','text-yellow-700'] : ['bg-green-50','text-green-700'];
+            const fLabel = r.fatigueIndex>30 ? `+${r.fatigueIndex}% más lento` : r.fatigueIndex>0 ? `+${r.fatigueIndex}% leve` : 'Sin fatiga';
+
+            report.innerHTML = `
+                <div class="grid grid-cols-2 gap-2 text-sm">
+                    ${card('⚡ Tiempo de reacción', r.avgRt?r.avgRt+'ms':'—', 'desde aparición hasta 1ª tecla','bg-blue-50','text-blue-700')}
+                    ${card('🎯 Precisión fonológica', r.phonoAccuracy+'%', 'letras fonéticamente similares','bg-purple-50','text-purple-700')}
+                    ${card('🧠 Memoria de trabajo', r.wmScore!==null?r.wmScore+'/10':'—', 'palabras largas completadas','bg-indigo-50','text-indigo-700')}
+                    ${card('😴 Índice de fatiga', fLabel, 'cambio de velocidad 1ª vs 2ª mitad', fColor[0], fColor[1])}
+                </div>
+                <div>
+                    <div class="text-[10px] font-bold text-slate-400 uppercase mb-2">Rendimiento por palabra</div>
+                    <div class="bg-slate-50 rounded-xl px-2 pt-2 pb-1 flex gap-1.5 items-end overflow-x-auto" style="min-height:58px">${bars}</div>
+                    <div class="flex gap-3 mt-1.5 text-[9px] font-bold text-slate-400">
+                        <span>🟢 sin errores</span><span>🟡 con errores</span><span>🔴 fallida</span>
+                    </div>
+                </div>
+                <div class="rounded-xl px-3 py-2.5 text-xs font-bold bg-amber-50 border border-amber-200 text-amber-800 leading-snug">
+                    ${r.recommendation}
+                </div>`;
+        }
+
+        let battle = {
+            active: false,
+            letters: [],
+            results: [],
+            idx: 0,
+            phase: 'type',
+        };
+
+        // ---- Canvas Niebla Survival Horror ----
+        const fog = {
+            density: 0, target: 0,
+            particles: [],
+            phase: 'idle',   // idle | engulf | dissipate
+            raf: null, canvas: null, ctx: null,
+            w: 1, h: 1, _phStart: 0,
+        };
+
+        function entInit() {
+            fog.canvas = document.getElementById('fog-canvas');
+            if (!fog.canvas) return;
+            fog.ctx = fog.canvas.getContext('2d');
+            const rect = fog.canvas.parentElement.getBoundingClientRect();
+            fog.w = fog.canvas.width  = Math.max(Math.round(rect.width)  || 320, 1);
+            fog.h = fog.canvas.height = Math.max(Math.round(rect.height) || 200, 1);
+            fog.density = 0; fog.target = 0;
+            fog.phase = 'idle';
+            fog.particles = [];
+            for (let i = 0; i < 32; i++) fog.particles.push(mkFogParticle(true));
+            fog.canvas.style.display = 'block';
+            if (fog.raf) cancelAnimationFrame(fog.raf);
+            fogLoop();
+        }
+
+        function mkFogParticle(init) {
+            const w = fog.w || 320, h = fog.h || 200;
+            return {
+                x:  Math.random() * w,
+                y:  init ? Math.random() * h : h + 20 + Math.random() * 60,
+                vx: (Math.random() - 0.5) * 0.28,
+                vy: -(0.10 + Math.random() * 0.20),
+                r:  55 + Math.random() * 90,
+                t:  Math.random() * Math.PI * 2,
+                ts: 0.007 + Math.random() * 0.011,
+            };
+        }
+
+        function fogLoop() {
+            if (!fog.ctx) return;
+            fog.raf = requestAnimationFrame(fogLoop);
+            const { ctx, w, h } = fog;
+            ctx.clearRect(0, 0, w, h);
+
+            if (fog.phase === 'engulf')    { drawFogEngulf();    return; }
+            if (fog.phase === 'dissipate') { drawFogDissipate(); return; }
+
+            fog.density += (fog.target - fog.density) * 0.025;
+            const d = fog.density;
+            if (d < 0.004) return;
+
+            // Dark horror tint
+            ctx.fillStyle = `rgba(4,16,6,${d * 0.52})`;
+            ctx.fillRect(0, 0, w, h);
+
+            // Wispy particles
+            fog.particles.forEach(p => {
+                p.t  += p.ts;
+                p.x  += p.vx + Math.sin(p.t) * 0.22;
+                p.y  += p.vy;
+                if (p.y + p.r < -20) Object.assign(p, mkFogParticle(false));
+
+                const alpha = d * 0.52 * (0.35 + 0.65 * Math.abs(Math.sin(p.t * 0.5)));
+                const isDark = d > 0.5;
+                const hue   = isDark ? 115 : 195;
+                const light = isDark ? '10%' : '62%';
+
+                const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r);
+                g.addColorStop(0, `hsla(${hue},25%,${light},${alpha})`);
+                g.addColorStop(1, `hsla(${hue},20%,${light},0)`);
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+                ctx.fillStyle = g;
+                ctx.fill();
+            });
+
+            // CRT scanlines (horror feel at high density)
+            if (d > 0.42) {
+                ctx.save();
+                ctx.globalAlpha = (d - 0.42) * 0.22;
+                for (let y = 0; y < h; y += 3) {
+                    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+                    ctx.fillRect(0, y, w, 1);
+                }
+                ctx.restore();
+            }
+
+            // Vignette
+            if (d > 0.18) {
+                const vg = ctx.createRadialGradient(w/2, h/2, h*0.15, w/2, h/2, Math.max(w,h)*0.85);
+                vg.addColorStop(0, 'rgba(0,0,0,0)');
+                vg.addColorStop(1, `rgba(0,8,2,${(d-0.18)*0.65})`);
+                ctx.fillStyle = vg;
+                ctx.fillRect(0, 0, w, h);
+            }
+        }
+
+        function drawFogEngulf() {
+            const { ctx, w, h } = fog;
+            const prog = Math.min((Date.now() - fog._phStart) / 2600, 1);
+            fog.density = Math.min(1, fog.density + 0.007);
+
+            ctx.fillStyle = `rgba(2,9,3,${0.12 + prog * 0.88})`;
+            ctx.fillRect(0, 0, w, h);
+
+            fog.particles.forEach(p => {
+                const dx = w/2 - p.x, dy = h*0.6 - p.y;
+                p.x += dx * 0.013 * prog;
+                p.y += dy * 0.013 * prog;
+                const alpha = (1 - prog * 0.25) * 0.45;
+                const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * (1 + prog * 0.8));
+                g.addColorStop(0, `hsla(115,45%,8%,${alpha})`);
+                g.addColorStop(1, 'transparent');
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.r*(1+prog*0.8), 0, Math.PI*2);
+                ctx.fillStyle = g; ctx.fill();
+            });
+
+            // Pulsing red vignette
+            const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 180);
+            const vg = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, Math.max(w,h));
+            vg.addColorStop(0.25, 'transparent');
+            vg.addColorStop(1, `rgba(90,0,0,${prog * 0.65 * pulse})`);
+            ctx.fillStyle = vg; ctx.fillRect(0, 0, w, h);
+
+            if (prog > 0.62) {
+                ctx.save();
+                ctx.globalAlpha = (prog - 0.62) / 0.38;
+                ctx.font = `bold ${Math.round(13 + prog*9)}px monospace`;
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.shadowColor = '#00ff44'; ctx.shadowBlur = 22;
+                ctx.fillStyle = `rgba(0,210,50,${(prog-0.62)/0.38})`;
+                ctx.fillText('GAME  OVER', w/2, h/2);
+                ctx.restore();
+            }
+        }
+
+        function drawFogDissipate() {
+            const { ctx, w, h } = fog;
+            const prog = Math.min((Date.now() - fog._phStart) / 1800, 1);
+            fog.density = Math.max(0, fog.density - 0.014);
+
+            // Golden light burst
+            const gr = ctx.createRadialGradient(w/2, h/2, 0, w/2, h/2, Math.max(w,h)*0.9);
+            gr.addColorStop(0,   `rgba(255,248,140,${prog * 0.9})`);
+            gr.addColorStop(0.5, `rgba(255,200,40,${prog * 0.45})`);
+            gr.addColorStop(1,   'rgba(255,200,40,0)');
+            ctx.fillStyle = gr; ctx.fillRect(0, 0, w, h);
+
+            fog.particles.forEach(p => {
+                const angle = Math.atan2(p.y - h/2, p.x - w/2);
+                p.x += Math.cos(angle) * 2.8 * prog;
+                p.y += Math.sin(angle) * 2.8 * prog;
+                const alpha = (1 - prog) * 0.28;
+                if (alpha > 0.01) {
+                    ctx.beginPath(); ctx.arc(p.x, p.y, p.r * (1 - prog*0.5), 0, Math.PI*2);
+                    ctx.fillStyle = `rgba(255,248,130,${alpha})`; ctx.fill();
+                }
+            });
+
+            if (prog >= 1) {
+                cancelAnimationFrame(fog.raf); fog.raf = null;
+                ctx.clearRect(0, 0, w, h);
+                fog.canvas.style.display = 'none';
+            }
+        }
+
+        function fogAdvance() {
+            fog.target = Math.min(1, fog.target + 1/3);
+            updateFogBar();
+        }
+        function fogRetreat() {
+            fog.target = Math.max(0, fog.target - 0.15);
+            updateFogBar();
+        }
+        function fogEngulf()    { fog.phase = 'engulf';    fog._phStart = Date.now(); }
+        function fogDissipate() { fog.phase = 'dissipate'; fog._phStart = Date.now(); }
+        function fogStop() {
+            if (fog.raf) { cancelAnimationFrame(fog.raf); fog.raf = null; }
+            if (fog.canvas) { fog.ctx && fog.ctx.clearRect(0,0,fog.w,fog.h); fog.canvas.style.display='none'; }
+            fog.phase   = 'idle';
+            fog.density = 0;
+            fog.target  = 0;
+        }
+        function updateFogBar() {
+            const bar = document.getElementById('fog-bar');
+            if (!bar) return;
+            const pct = Math.round(fog.target * 100);
+            bar.style.width = pct + '%';
+            bar.style.background = pct < 34
+                ? 'linear-gradient(to right,#86efac,#4ade80)'
+                : pct < 67 ? 'linear-gradient(to right,#fde047,#f97316)'
+                : 'linear-gradient(to right,#dc2626,#7f1d1d)';
+        }
+
+        // ---- Sonidos de batalla (Web Audio) ----
+        function _getBattleACtx() {
+            if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (_audioCtx.state === 'suspended') _audioCtx.resume();
+            return _audioCtx;
+        }
+
+        function playBattleHit() {
+            try {
+                const ctx = _getBattleACtx();
+                const buf = ctx.createBuffer(1, Math.round(ctx.sampleRate * 0.12), ctx.sampleRate);
+                const d = buf.getChannelData(0);
+                for (let i = 0; i < d.length; i++) {
+                    const t2 = i / ctx.sampleRate;
+                    d[i] = Math.sin(2*Math.PI*(800-t2*3000)*t2) * Math.exp(-t2*20) * 0.4;
+                }
+                const src = ctx.createBufferSource();
+                src.buffer = buf;
+                src.connect(ctx.destination);
+                src.start();
+            } catch(e) {}
+        }
+
+        function playBattleMiss() {
+            try {
+                const ctx = _getBattleACtx();
+                const osc  = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(180, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.18);
+                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+                osc.start(); osc.stop(ctx.currentTime + 0.22);
+            } catch(e) {}
+        }
+
+        // ---- Teclado de batalla QWERTY ----
+        // Color por letra (A=0, B=1 … Z=25) para que cada letra tenga siempre el mismo color
+        const BATTLE_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#06B6D4','#3B82F6','#8B5CF6','#EC4899','#EF4444'];
+        const LETTER_IDX = {};
+        'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').forEach((l, i) => { LETTER_IDX[l] = i; });
+
+        const QWERTY_ROWS = [
+            ['Q','W','E','R','T','Y','U','I','O','P'],
+            ['A','S','D','F','G','H','J','K','L'],
+            ['Z','X','C','V','B','N','M'],
+        ];
+
+        function makeBattleKey(label, letterVal, extraStyle = {}) {
+            const btn = document.createElement('button');
+            btn.className = 'ph-key';
+            btn.style.flex = '1';
+            if (letterVal && LETTER_IDX[letterVal] !== undefined) {
+                btn.style.background = BATTLE_COLORS[LETTER_IDX[letterVal] % BATTLE_COLORS.length];
+            } else {
+                btn.style.background = extraStyle.bg || '#475569';
+            }
+            btn.style.borderColor = 'rgba(0,0,0,0.2)';
+            if (extraStyle.fontSize) btn.style.fontSize = extraStyle.fontSize;
+            if (extraStyle.maxWidth) btn.style.maxWidth = extraStyle.maxWidth;
+            btn.textContent = label;
+            btn.dataset.letter = letterVal || label;
+            btn.addEventListener('pointerdown', (e) => { e.preventDefault(); handleBattleKey(letterVal || label); });
+            return btn;
+        }
+
+        function renderBattleKeyboard() {
+            const c = document.getElementById('battle-keyboard');
+            if (!c) return;
+            c.innerHTML = '';
+
+            const word = state.playlist?.[state.currentIndex]?.w || '';
+            const needSpace      = word.includes(' ');
+            const needApostrophe = word.includes("'");
+
+            // Rows Q-P, A-L, Z-M (max-width keeps all keys same size as the 10-key top row)
+            QWERTY_ROWS.forEach(row => {
+                const rowDiv = document.createElement('div');
+                rowDiv.className = 'flex justify-center gap-1';
+                row.forEach(letter => {
+                    const btn = makeBattleKey(letter, letter);
+                    btn.style.maxWidth = '42px';
+                    rowDiv.appendChild(btn);
+                });
+                c.appendChild(rowDiv);
+            });
+
+            // Special keys row (always visible row 4)
+            const specialRow = document.createElement('div');
+            specialRow.className = 'flex justify-center gap-1';
+
+            if (needSpace) {
+                const btn = document.createElement('button');
+                btn.className = 'ph-key';
+                btn.style.flex = '4';
+                btn.style.background = '#334155';
+                btn.style.borderColor = 'rgba(0,0,0,0.2)';
+                btn.style.fontSize = '0.65rem';
+                btn.textContent = '⎵  SPACE';
+                btn.dataset.letter = ' ';
+                btn.addEventListener('pointerdown', (e) => { e.preventDefault(); handleBattleKey(' '); });
+                specialRow.appendChild(btn);
+            }
+
+            if (needApostrophe) {
+                const btn = document.createElement('button');
+                btn.className = 'ph-key';
+                btn.style.flex = '2';
+                btn.style.background = '#475569';
+                btn.style.borderColor = 'rgba(0,0,0,0.2)';
+                btn.style.fontSize = '0.75rem';
+                btn.textContent = "'  ' ";
+                btn.dataset.letter = "'";
+                btn.addEventListener('pointerdown', (e) => { e.preventDefault(); handleBattleKey("'"); });
+                specialRow.appendChild(btn);
+            }
+
+            if (needSpace || needApostrophe) {
+                c.appendChild(specialRow);
+            }
+        }
+
+        function flashBattleKey(letter, correct) {
+            document.querySelectorAll('#battle-keyboard .ph-key').forEach(k => {
+                if (k.dataset.letter !== letter) return;
+                const cls = correct ? 'correct-flash' : 'wrong-flash';
+                k.classList.add(cls);
+                setTimeout(() => k.classList.remove(cls), 320);
+            });
+        }
+
+        // ---- Slots de batalla ----
+        function renderBattleSlots() {
+            const c = document.getElementById('battle-slots');
+            if (!c) return;
+            c.innerHTML = '';
+            battle.letters.forEach((letter, i) => {
+                const r = battle.results[i];
+                const cur = (i === battle.idx && battle.phase === 'type');
+                const div = document.createElement('div');
+
+                // Space slot: thin word-break indicator
+                if (letter === ' ') {
+                    div.className = 'ph-slot';
+                    Object.assign(div.style, {
+                        background: 'transparent', boxShadow: 'none', border: 'none',
+                        borderBottom: r?.correct ? '3px solid #22c55e' : '2px dashed rgba(148,163,184,0.5)',
+                        width: '12px', minWidth: '12px', padding: '0',
+                    });
+                    c.appendChild(div);
+                    return;
+                }
+
+                div.className = 'ph-slot';
+                if (r && r.correct === true) {
+                    Object.assign(div.style, { background:'#22c55e', borderBottomColor:'#15803d', color:'white' });
+                    div.textContent = letter === "'" ? "'" : letter;
+                } else if (r && r.correct === false) {
+                    Object.assign(div.style, { background:'#f97316', borderBottomColor:'#c2410c', color:'white' });
+                    div.textContent = letter === "'" ? "'" : letter;
+                } else if (cur) {
+                    Object.assign(div.style, { background:'white', border:'3px solid #facc15', borderBottom:'4px solid #ca8a04', color:'#b45309', boxShadow:'0 0 0 3px rgba(250,204,21,0.35)' });
+                    div.textContent = '?';
+                } else {
+                    Object.assign(div.style, { background:'rgba(255,255,255,0.2)', borderBottomColor:'#e2e8f0', color:'transparent' });
+                    div.textContent = letter === "'" ? "'" : letter;
+                }
+                c.appendChild(div);
+            });
+        }
+
+        function popBattleSlot(i) {
+            const c = document.getElementById('battle-slots');
+            if (!c) return;
+            const slot = c.children[i];
+            if (!slot) return;
+            slot.classList.remove('pop');
+            void slot.offsetWidth;
+            slot.classList.add('pop');
+            setTimeout(() => slot.classList.remove('pop'), 400);
+        }
+
+        // ---- Inicializar Batalla ----
+        function initBattle() {
+            const word = (state.playlist[state.currentIndex]?.w || '').toUpperCase();
+            battle.letters = word.split('').filter(c => /[A-Z]/.test(c) || c === ' ' || c === "'");
+            battle.results = battle.letters.map(() => null);
+            battle.idx = 0;
+            battle.phase = 'type';
+            battle.active = true;
+            document.getElementById('action-btn').classList.add('hidden');
+            const nextBtn = document.getElementById('battle-next-btn');
+            if (nextBtn) nextBtn.classList.add('hidden');
+            const res = document.getElementById('battle-result');
+            if (res) res.classList.add('hidden');
+            fog.density = 0; fog.target = 0; fog.phase = 'idle';
+            updateFogBar();
+            renderBattleSlots();
+            renderBattleKeyboard();
+            entInit();
+            metricsWordStart();
+        }
+
+        // ---- Manejar tecla de batalla ----
+        function handleBattleKey(letter) {
+            if (!battle.active || battle.phase !== 'type') return;
+            const pos      = battle.idx;
+            const expected = battle.letters[pos];
+
+            if (letter === expected) {
+                // ✅ Correcto — la niebla retrocede
+                metricsKeyPress(pos);
+                battle.results[pos] = { letter, correct: true };
+                renderBattleSlots();
+                flashBattleKey(letter, true);
+                popBattleSlot(pos);
+                fogRetreat();
+                playBattleHit();
+                // Flash verde en el canvas de niebla
+                if (fog.canvas) {
+                    fog.canvas.style.boxShadow = '0 0 28px 8px rgba(34,197,94,0.7)';
+                    setTimeout(() => { fog.canvas.style.boxShadow = ''; }, 380);
+                }
+                battle.idx++;
+                if (battle.idx >= battle.letters.length) {
+                    battle.phase = 'done';
+                    battle.active = false;
+                    setTimeout(() => { fogDissipate(); completeBattle(true); }, 280);
+                } else {
+                    renderBattleSlots();
+                }
+            } else {
+                // ❌ Incorrecto — la niebla avanza
+                metricsKeyPress(pos);
+                metricsError(pos, expected, letter);
+                if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+                flashBattleKey(letter, false);
+                fogAdvance();
+                playBattleMiss();
+                // Flash rojo en el canvas y en el card
+                if (fog.canvas) {
+                    fog.canvas.style.boxShadow = '0 0 32px 10px rgba(220,38,38,0.75)';
+                    setTimeout(() => { fog.canvas.style.boxShadow = ''; }, 420);
+                }
+                const gameCard = document.getElementById('game-card');
+                if (gameCard) {
+                    gameCard.classList.remove('flash-red');
+                    void gameCard.offsetWidth;
+                    gameCard.classList.add('flash-red');
+                }
+                state.lives--;
+                updateLivesDisplay();
+                if (state.lives <= 0) {
+                    battle.active = false;
+                    battle.phase = 'done';
+                    for (let i = battle.idx; i < battle.letters.length; i++) {
+                        battle.results[i] = { letter: battle.letters[i], correct: false };
+                    }
+                    renderBattleSlots();
+                    fogEngulf();
+                    showBattleResult(false, `💀 La niebla ganó · La respuesta era: ${battle.letters.join('')}`);
+                    speak('Game over! The answer is ' + (state.playlist[state.currentIndex]?.w || ''));
+                    setTimeout(() => { completeBattle(false); }, 2800);
+                } else {
+                    const restantes = state.lives === 1 ? '1 ❤️ restante' : `${state.lives} ❤️ restantes`;
+                    showBattleResult(false, `❌ Era "${expected}" · La niebla avanza · ${restantes}`);
+                    setTimeout(() => hideBattleResult(), 1800);
+                }
+            }
+        }
+
+        function showBattleResult(ok, msg) {
+            const el = document.getElementById('battle-result');
+            if (!el) return;
+            el.className = `text-center font-bold text-xs py-1.5 px-3 rounded-xl ${ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+        function hideBattleResult() {
+            const el = document.getElementById('battle-result');
+            if (el) el.classList.add('hidden');
+        }
+
+        // ---- Completar batalla ----
+        function completeBattle(won) {
+            battle.phase = 'done';
+            battle.active = false;
+            metricsSaveWord(state.playlist[state.currentIndex]?.w || '', won);
+            if (!won) fogStop();
+
+            const total = battle.letters.length;
+            const good  = battle.results.filter(r => r && r.correct).length;
+            const bonus = Math.round((good / total) * 5);
+            const pts   = state.lives === 3 ? 10 : state.lives === 2 ? 7 : 4;
+            state.score += pts + bonus;
+            document.getElementById('score-display').innerText = state.score;
+            if (won) addToTotalScore(pts + bonus);
+
+            state.results.push({
+                word:     state.playlist[state.currentIndex].w,
+                correct:  won,
+                attempts: state.wordAttempts,
+                battle:   { good, total },
+            });
+
+            if (won) {
+                if (typeof confetti === 'function')
+                    confetti({ particleCount: 100, spread: 80, origin: { y: 0.7 } });
+                speak('Perfect! You defeated Entropión!');
+                showBattleResult(true, `⚔️ ¡Derrotaste a Entropión! +${pts + bonus}⭐`);
+            }
+
+            setTimeout(() => {
+                hideBattleResult();
+                const nextBtn = document.getElementById('battle-next-btn');
+                if (nextBtn) nextBtn.classList.remove('hidden');
+            }, won ? 2000 : 500);
+        }
+
+        // Physical keyboard support for battle mode
+        document.addEventListener('keydown', (e) => {
+            if (currentInputMode !== 'battle' || !battle.active) return;
+            if (e.ctrlKey || e.metaKey || e.altKey) return;
+            const letter = e.key.toUpperCase();
+            if (/^[A-Z]$/.test(letter)) { e.preventDefault(); handleBattleKey(letter); }
+        });
+
+        // ================================================
+        // SISTEMA DE USUARIOS Y GAMIFICACIÓN PERSISTENTE
+        // ================================================
+        const STORAGE = {
+            get(k, def) { try { const v = localStorage.getItem('kb_' + k); return v !== null ? JSON.parse(v) : def; } catch { return def; } },
+            set(k, v)   { try { localStorage.setItem('kb_' + k, JSON.stringify(v)); } catch {} }
+        };
+
+        function getCurrentUser() { return STORAGE.get('current_user', ''); }
+        function setCurrentUser(name) { STORAGE.set('current_user', name); }
+        function getUsers() { return STORAGE.get('users', []); }
+        function addUser(name) { const u = getUsers(); if (!u.includes(name)) { u.push(name); STORAGE.set('users', u); } }
+
+        function getUserData(key, def) { const u = getCurrentUser(); return u ? STORAGE.get('u_' + u + '_' + key, def) : def; }
+        function setUserData(key, val) { const u = getCurrentUser(); if (u) STORAGE.set('u_' + u + '_' + key, val); }
+
+        const BEE_BELTS = [
+            { min: 0,    max: 100,      name: 'Blanco',   bg: '#f8fafc', border: '#94a3b8', text: '#475569', emoji: '🐣', barColor: '#94a3b8',  label: 'Abeja Bebé'      },
+            { min: 101,  max: 300,      name: 'Amarillo', bg: '#fef9c3', border: '#ca8a04', text: '#713f12', emoji: '🐝', barColor: '#eab308',  label: 'Abeja Estudiante'},
+            { min: 301,  max: 600,      name: 'Verde',    bg: '#dcfce7', border: '#16a34a', text: '#14532d', emoji: '⚔️', barColor: '#22c55e',  label: 'Abeja Guerrera'  },
+            { min: 601,  max: 1000,     name: 'Negro',    bg: '#1e293b', border: '#64748b', text: '#f1f5f9', emoji: '🥋', barColor: '#475569',  label: 'Abeja Maestra'   },
+            { min: 1001, max: Infinity, name: 'Dorado',   bg: '#fef3c7', border: '#d97706', text: '#78350f', emoji: '👑', barColor: '#f59e0b',  label: 'Abeja Legendaria'},
+        ];
+
+        function getBeeLevel() {
+            const total = getUserData('score', 0);
+            return BEE_BELTS.find(b => total >= b.min && total <= b.max) || BEE_BELTS[0];
+        }
+
+        function addToTotalScore(pts) {
+            const prev  = getUserData('score', 0);
+            const prevL = BEE_BELTS.find(b => prev >= b.min && prev <= b.max) || BEE_BELTS[0];
+            const next  = prev + pts;
+            setUserData('score', next);
+            const nextL = BEE_BELTS.find(b => next >= b.min && next <= b.max) || BEE_BELTS[0];
+            if (prevL.name !== nextL.name) {
+                if (typeof confetti === 'function') confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+                showToast(`🎉 ¡EVOLUCIONASTE! ${nextL.emoji} ${nextL.label} · Cinturón ${nextL.name}`, 5000);
+            }
+            updateBeeDisplay();
+        }
+
+        function updateBeeDisplay() {
+            const level = getBeeLevel();
+            const user  = getCurrentUser();
+
+            // Home belt badge
+            const badge = document.getElementById('home-bee-belt');
+            if (badge) {
+                badge.textContent = `${level.emoji} ${level.name}`;
+                Object.assign(badge.style, { background: level.bg, borderColor: level.border, color: level.text });
+            }
+
+            // Header user indicator
+            const headerBee  = document.getElementById('header-user-bee');
+            const headerName = document.getElementById('header-user-name');
+            const headerUser = document.getElementById('header-user');
+            if (headerBee)  headerBee.textContent  = level.emoji;
+            if (headerName) headerName.textContent = user || '—';
+            if (headerUser) headerUser.classList.toggle('hidden', !user);
+        }
+
+        function updateWinBeltDisplay() {
+            const level    = getBeeLevel();
+            const total    = getUserData('score', 0);
+            const nextBelt = BEE_BELTS.find(b => b.min > total);
+
+            const label = document.getElementById('win-belt-label');
+            const bar   = document.getElementById('win-belt-bar');
+            const cur   = document.getElementById('win-belt-current');
+            const nxt   = document.getElementById('win-belt-next');
+
+            if (label) { label.textContent = `${level.emoji} ${level.label}`; Object.assign(label.style, { background: level.bg, borderColor: level.border, color: level.text }); }
+            if (bar)   bar.style.background = level.barColor;
+
+            if (nextBelt) {
+                const pct = Math.min(100, Math.round(((total - level.min) / (nextBelt.min - level.min)) * 100));
+                if (bar) bar.style.width = pct + '%';
+                if (cur) cur.textContent  = total + ' pts';
+                if (nxt) nxt.textContent  = `→ ${nextBelt.emoji} ${nextBelt.name}: ${nextBelt.min} pts`;
+            } else {
+                if (bar) bar.style.width = '100%';
+                if (cur) cur.textContent  = total + ' pts';
+                if (nxt) nxt.textContent  = '👑 ¡Nivel máximo alcanzado!';
+            }
+        }
+
+        function checkDailyStreak() {
+            const today     = new Date().toDateString();
+            const lastPlay  = getUserData('last_play', '');
+            let streak      = getUserData('streak', 0);
+            let bestStreak  = getUserData('best_streak', 0);
+            if (lastPlay !== today) {
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                streak = (lastPlay === yesterday) ? streak + 1 : 1;
+                if (streak > bestStreak) { bestStreak = streak; setUserData('best_streak', bestStreak); }
+                setUserData('streak', streak);
+                setUserData('last_play', today);
+            }
+            return streak;
+        }
+
+        function updateStreakDisplay() {
+            const streak = getUserData('streak', 0);
+            const best   = getUserData('best_streak', 0);
+            const el     = document.getElementById('home-streak');
+            if (!el) return;
+            if (streak >= 1) {
+                el.innerHTML = streak === 1 ? '🔥 Día 1' : `🔥 ${streak} días seguidos${best > streak ? ` · 👑 Récord: ${best}` : ''}`;
+                el.classList.remove('hidden');
+            }
+        }
+
+        function showToast(html, duration = 3000) {
+            const toast   = document.getElementById('toast-notification');
+            const content = document.getElementById('toast-content');
+            if (!toast || !content) return;
+            content.innerHTML = html;
+            toast.classList.remove('hidden');
+            clearTimeout(toast._t);
+            toast._t = setTimeout(() => toast.classList.add('hidden'), duration);
+        }
+
+        // ---- User modal functions ----
+        function openUserModal() {
+            const users = getUsers();
+            const list  = document.getElementById('user-list');
+            if (list) {
+                if (users.length > 0) {
+                    list.classList.remove('hidden');
+                    list.innerHTML = users.map(u =>
+                        `<button onclick="selectUser('${u}')" class="w-full text-left px-3 py-2 bg-orange-50 hover:bg-orange-100 border-2 border-orange-200 rounded-xl font-bold text-orange-700 flex items-center gap-2 transition-colors">
+                            <span>${getBeeEmoji(u)}</span> ${u}
+                        </button>`
+                    ).join('');
+                } else {
+                    list.classList.add('hidden');
+                }
+            }
+            const input = document.getElementById('user-name-input');
+            if (input) { input.value = ''; input.focus(); }
+            document.getElementById('user-modal').classList.remove('hidden');
+        }
+
+        function getBeeEmoji(userName) {
+            const score = STORAGE.get('u_' + userName + '_score', 0);
+            return (BEE_BELTS.find(b => score >= b.min && score <= b.max) || BEE_BELTS[0]).emoji;
+        }
+
+        function selectUser(name) {
+            setCurrentUser(name);
+            document.getElementById('user-modal').classList.add('hidden');
+            onUserReady();
+        }
+
+        function confirmUserName() {
+            const input = document.getElementById('user-name-input');
+            const name  = (input?.value || '').trim().toUpperCase();
+            if (!name) { input?.focus(); return; }
+            addUser(name);
+            setCurrentUser(name);
+            document.getElementById('user-modal').classList.add('hidden');
+            const streak = getUserData('streak', 0);
+            if (streak >= 2) showToast(`🔥 ¡Hola ${name}! Llevas ${streak} días seguidos. ¡No rompas tu racha!`, 4000);
+            onUserReady();
+        }
+
+        function onUserReady() {
+            checkDailyStreak();
+            updateBeeDisplay();
+            updateStreakDisplay();
+            updateWinBeltDisplay();
+            const savedAge = parseInt(localStorage.getItem('kb_age') || '0');
+            if (!savedAge) {
+                document.getElementById('age-modal')?.classList.remove('hidden');
+            }
+        }
+
+        // ---- Torneo state & functions ----
+        let torneo = { streak: 0, bestThisLevel: 0 };
+
+        function initTorneo() {
+            torneo.streak = 0;
+            torneo.bestThisLevel = getUserData('best_torneo_streak', 0);
+            updateTorneoDisplay();
+        }
+
+        function updateTorneoDisplay() {
+            const s = document.getElementById('torneo-streak-count');
+            const b = document.getElementById('torneo-best-label');
+            if (s) s.textContent = torneo.streak;
+            if (b) b.textContent = `👑 ${torneo.bestThisLevel}`;
+            const counter = document.getElementById('torneo-streak-count')?.parentElement?.parentElement;
+            if (counter) {
+                const colors = torneo.streak >= 10 ? ['bg-red-50','border-red-400','text-red-600'] :
+                               torneo.streak >= 5  ? ['bg-orange-50','border-orange-300','text-orange-500'] :
+                               ['bg-slate-50','border-slate-200','text-slate-600'];
+                counter.className = `inline-flex items-center gap-3 rounded-2xl px-5 py-2 border-2 ${colors.join(' ')}`;
+            }
+        }
+
+        function torneoCorrect() {
+            torneo.streak++;
+            if (torneo.streak > torneo.bestThisLevel) {
+                torneo.bestThisLevel = torneo.streak;
+                if (torneo.streak > (getUserData('best_torneo_streak', 0))) {
+                    setUserData('best_torneo_streak', torneo.streak);
+                }
+            }
+            updateTorneoDisplay();
+            showTorneoResult(true, `🔥 +1 · Racha: ${torneo.streak}`);
+            if (typeof confetti === 'function' && torneo.streak % 5 === 0)
+                confetti({ particleCount: 60, spread: 70, origin: { y: 0.7 } });
+        }
+
+        function torneoReset() {
+            torneo.streak = 0;
+            updateTorneoDisplay();
+            const card = document.getElementById('game-card');
+            if (card) { card.classList.remove('flash-red'); void card.offsetWidth; card.classList.add('flash-red'); }
+            if (navigator.vibrate) navigator.vibrate([100, 50, 100, 50, 100]);
+        }
+
+        function showTorneoResult(ok, msg) {
+            const el = document.getElementById('torneo-result');
+            if (!el) return;
+            el.className = `text-center font-black text-sm py-2 px-3 rounded-2xl ${ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`;
+            el.textContent = msg;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 1500);
+        }
+
+        // Init on load
+        window.addEventListener('DOMContentLoaded', () => {
+            const user = getCurrentUser();
+            if (!user) {
+                openUserModal();
+            } else {
+                checkDailyStreak();
+                updateBeeDisplay();
+                updateStreakDisplay();
+                const streak = getUserData('streak', 0);
+                if (streak >= 2) showToast(`🔥 ¡Hola ${user}! Llevas ${streak} días seguidos. ¡No rompas tu racha!`, 4000);
+                const savedAge = parseInt(localStorage.getItem('kb_age') || '0');
+                if (!savedAge) document.getElementById('age-modal')?.classList.remove('hidden');
+            }
+        });
+
+    </script>
+
+    <!-- Modal: selección/creación de usuario -->
+    <div id="user-modal" class="hidden fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-xs text-center pop-in">
+            <div class="text-5xl mb-2">🐝</div>
+            <h3 class="text-2xl font-black text-slate-800 mb-1">¡Bienvenido!</h3>
+            <p class="text-slate-500 mb-4 font-medium text-sm">¿Cómo te llamas? <span class="text-xs text-slate-400">(cada persona tiene su propio progreso)</span></p>
+            <div id="user-list" class="hidden mb-3 space-y-2 max-h-36 overflow-y-auto"></div>
+            <div class="flex gap-2">
+                <input type="text" id="user-name-input"
+                    class="flex-1 text-center text-xl font-bold text-slate-700 bg-slate-100 rounded-xl py-3 px-3 border-2 border-slate-200 focus:border-yellow-400 focus:ring-2 focus:ring-yellow-100 outline-none uppercase"
+                    placeholder="Mi nombre" maxlength="16" autocomplete="off"
+                    onkeydown="if(event.key==='Enter')confirmUserName()">
+                <button onclick="confirmUserName()"
+                    class="bg-orange-400 hover:bg-orange-500 text-white font-black px-4 rounded-xl border-b-4 border-orange-600 active:border-b-0 active:translate-y-1 transition-all text-xl">✓</button>
+            </div>
+            <p class="text-slate-400 text-xs mt-3">Ideal para toda la familia 👨‍👩‍👧‍👦</p>
+        </div>
+    </div>
+
+    <!-- Modal: selección de edad (primera visita) -->
+    <div id="age-modal" class="hidden fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl p-6 w-full max-w-xs text-center pop-in">
+            <div class="text-5xl mb-2">👋</div>
+            <h3 class="text-2xl font-black text-slate-800 mb-1">¡Hola, campeón!</h3>
+            <p class="text-slate-500 mb-5 font-medium text-sm">¿Cuántos años tienes?</p>
+            <div class="flex gap-2">
+                <button onclick="setStudentAge(6)"
+                    class="flex-1 bg-green-100 hover:bg-green-200 border-b-4 border-green-300 text-green-700 font-black py-4 rounded-2xl transition-all active:translate-y-1 active:border-b-0">
+                    <div class="text-2xl">😊</div>5-7<div class="text-[10px]">años</div>
+                </button>
+                <button onclick="setStudentAge(9)"
+                    class="flex-1 bg-blue-100 hover:bg-blue-200 border-b-4 border-blue-300 text-blue-700 font-black py-4 rounded-2xl transition-all active:translate-y-1 active:border-b-0">
+                    <div class="text-2xl">😃</div>8-10<div class="text-[10px]">años</div>
+                </button>
+                <button onclick="setStudentAge(12)"
+                    class="flex-1 bg-purple-100 hover:bg-purple-200 border-b-4 border-purple-300 text-purple-700 font-black py-4 rounded-2xl transition-all active:translate-y-1 active:border-b-0">
+                    <div class="text-2xl">😎</div>11+<div class="text-[10px]">años</div>
+                </button>
+            </div>
+            <button onclick="setStudentAge(0)" class="mt-3 text-slate-400 text-xs hover:text-slate-600 font-medium">Omitir</button>
+        </div>
+    </div>
+</body>
+
+</html>
