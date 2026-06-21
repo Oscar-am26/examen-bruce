@@ -753,6 +753,24 @@
                 <div id="cognitive-report" class="px-4 pb-4 pt-1 space-y-3"></div>
             </details>
 
+            <!-- Informe de Palabras Difíciles -->
+            <div id="difficulty-section" class="hidden w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+                <div class="px-4 py-3 bg-orange-50 border-b border-orange-100 flex items-center justify-between">
+                    <div>
+                        <h3 class="font-black text-orange-600">📊 Palabras que necesitan repaso</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Historial acumulado de sesiones</p>
+                    </div>
+                    <button onclick="clearWordStats()" class="text-xs text-slate-400 hover:text-red-400 font-bold transition-colors">🗑️ Borrar</button>
+                </div>
+                <div id="difficulty-list" class="px-3 py-3 space-y-1.5 max-h-52 overflow-y-auto"></div>
+                <div class="px-3 pb-3">
+                    <button onclick="startReviewRound()" id="review-btn"
+                        class="w-full bg-gradient-to-r from-orange-400 to-orange-600 text-white font-black py-3 rounded-xl shadow border-b-4 border-orange-700 active:translate-y-1 transition-all text-base">
+                        🔄 Hacer Ronda de Repaso
+                    </button>
+                </div>
+            </div>
+
             <!-- Botones -->
             <div class="flex gap-3 w-full">
                 <button onclick="closeWinScreen()"
@@ -1286,6 +1304,72 @@
         // CONFIG - Pixabay imágenes
         const PIXABAY_KEY = '56390879-fe458bc1c65276d628a42c172';
         const pixabayCache = {};
+
+        // ── Registro de palabras difíciles (persistente) ──────────────────
+        const STATS_KEY = 'bruceWordStats';
+        let sessionDifficultWords = new Set(); // palabras con problemas en esta sesión
+        let reviewCompleted = false;           // si ya hizo la ronda de repaso
+
+        function loadWordStats() {
+            try { return JSON.parse(localStorage.getItem(STATS_KEY) || '{}'); } catch(e) { return {}; }
+        }
+        function saveWordStats(stats) {
+            localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+        }
+        function trackWordFail(word) {
+            if (!word) return;
+            const stats = loadWordStats();
+            if (!stats[word]) stats[word] = { fails: 0, helps: 0 };
+            stats[word].fails++;
+            saveWordStats(stats);
+            sessionDifficultWords.add(word);
+        }
+        function trackWordHelp(word) {
+            if (!word) return;
+            const stats = loadWordStats();
+            if (!stats[word]) stats[word] = { fails: 0, helps: 0 };
+            stats[word].helps++;
+            saveWordStats(stats);
+            sessionDifficultWords.add(word);
+        }
+        function getDifficultWords() {
+            const stats = loadWordStats();
+            return Object.entries(stats)
+                .filter(([w, s]) => s.fails > 0 || s.helps > 0)
+                .sort((a, b) => (b[1].fails + b[1].helps) - (a[1].fails + a[1].helps))
+                .map(([w, s]) => ({ word: w, fails: s.fails, helps: s.helps }));
+        }
+        function clearWordStats() {
+            if (!confirm('¿Borrar todo el historial de palabras difíciles?')) return;
+            localStorage.removeItem(STATS_KEY);
+            sessionDifficultWords.clear();
+            document.getElementById('difficulty-section').classList.add('hidden');
+        }
+        function startReviewRound() {
+            // Buscar las entradas de las palabras difíciles en la categoría actual
+            const difficult = getDifficultWords().map(d => d.word);
+            if (!difficult.length) return;
+            const allWords = DB[state.currentCategory] || [];
+            const reviewPlaylist = allWords.filter(w => difficult.includes(w.w));
+            if (!reviewPlaylist.length) {
+                alert('No se encontraron palabras de repaso en esta categoría.');
+                return;
+            }
+            reviewCompleted = false;
+            document.getElementById('win-screen').classList.add('hidden');
+            // Mezclar y empezar
+            state.playlist = [...reviewPlaylist].sort(() => Math.random() - 0.5);
+            state.currentIndex = 0;
+            state.results = [];
+            state.lives = 3;
+            state.score = 0;
+            state.levelStartTime = Date.now();
+            state.levelStartScore = state.score;
+            state.isReviewRound = true;
+            updateLivesDisplay();
+            switchView('view-game');
+            loadWord();
+        }
         let   activeVoiceId       = "XrExE9yKIg1WjnnlVkGX"; // Matilda por defecto
         let   activeTTSEngine     = "elevenlabs"; // "elevenlabs" | "browser"
 
@@ -1568,9 +1652,12 @@
             state.playlist = DB[state.currentCategory].slice(start, end);
             state.currentIndex = 0;
             state.results = [];
+            state.isReviewRound = false;
             metrics.session_data = [];
             state.levelStartTime = Date.now();
             state.levelStartScore = state.score;
+            sessionDifficultWords.clear();
+            reviewCompleted = false;
 
             setCategoryBackground(state.currentCategory);
             switchView('view-game');
@@ -1850,6 +1937,7 @@
             setSpellingUI(true);
 
             const word = state.playlist[state.currentIndex].w;
+            trackWordHelp(word);
 
             // Full letter names so ElevenLabs pronounces each letter clearly
             const PHONETICS = {
@@ -2057,6 +2145,49 @@
             }
 
             showCognitiveReport();
+
+            // ── Informe de palabras difíciles ──────────────────────────────
+            const difficultWords = getDifficultWords();
+            const diffSection = document.getElementById('difficulty-section');
+            const diffList = document.getElementById('difficulty-list');
+            const nextLevelBtn = document.getElementById('next-level-btn');
+
+            if (difficultWords.length > 0) {
+                diffSection.classList.remove('hidden');
+                diffList.innerHTML = '';
+                difficultWords.forEach(d => {
+                    const div = document.createElement('div');
+                    div.className = 'flex items-center justify-between px-3 py-2 rounded-xl bg-orange-50 border border-orange-100';
+                    div.innerHTML = `
+                        <span class="font-bold text-slate-700 text-sm">${d.word}</span>
+                        <div class="flex gap-2 text-xs font-bold">
+                            <span class="bg-red-100 text-red-600 px-2 py-0.5 rounded-full">❌ ${d.fails} fallos</span>
+                            <span class="bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">💡 ${d.helps} ayudas</span>
+                        </div>`;
+                    diffList.appendChild(div);
+                });
+
+                // Bloquear siguiente nivel si hubo problemas esta sesión y no hizo repaso
+                if (sessionDifficultWords.size > 0 && !reviewCompleted && !state.isReviewRound) {
+                    nextLevelBtn.disabled = true;
+                    nextLevelBtn.classList.add('opacity-40', 'cursor-not-allowed');
+                    nextLevelBtn.title = 'Completa la ronda de repaso primero';
+                } else {
+                    nextLevelBtn.disabled = false;
+                    nextLevelBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+                }
+            } else {
+                diffSection.classList.add('hidden');
+            }
+
+            // Si terminó ronda de repaso, desbloquear y marcar completado
+            if (state.isReviewRound) {
+                reviewCompleted = true;
+                state.isReviewRound = false;
+                nextLevelBtn.disabled = false;
+                nextLevelBtn.classList.remove('opacity-40', 'cursor-not-allowed');
+            }
+
             speak("Congratulations! Level complete!");
 
             if (typeof confetti === 'function') {
@@ -3072,6 +3203,7 @@
                     fogEngulf();
                     showBattleResult(false, `💀 ¡La niebla ganó! Sigue practicando`);
                     speak('Your word is incorrect. Keep practicing!');
+                    trackWordFail(state.playlist[state.currentIndex]?.w || '');
                     setTimeout(() => { completeBattle(false); }, 2800);
                 } else {
                     const restantes = state.lives === 1 ? '1 ❤️ restante' : `${state.lives} ❤️ restantes`;
