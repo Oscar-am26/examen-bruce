@@ -3070,8 +3070,8 @@
                     }
                     renderBattleSlots();
                     fogEngulf();
-                    showBattleResult(false, `💀 La niebla ganó · La respuesta era: ${battle.letters.join('')}`);
-                    speak('Game over! The answer is ' + (state.playlist[state.currentIndex]?.w || ''));
+                    showBattleResult(false, `💀 ¡La niebla ganó! Sigue practicando`);
+                    speak('Your word is incorrect. Keep practicing!');
                     setTimeout(() => { completeBattle(false); }, 2800);
                 } else {
                     const restantes = state.lives === 1 ? '1 ❤️ restante' : `${state.lives} ❤️ restantes`;
@@ -3118,8 +3118,8 @@
             if (won) {
                 if (typeof confetti === 'function')
                     confetti({ particleCount: 100, spread: 80, origin: { y: 0.7 } });
-                speak('Perfect! You defeated Entropión!');
-                showBattleResult(true, `⚔️ ¡Derrotaste a Entropión! +${pts + bonus}⭐`);
+                speak('Your word is correct!');
+                showBattleResult(true, `✅ ¡Palabra correcta! +${pts + bonus}⭐`);
             }
 
             setTimeout(() => {
