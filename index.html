@@ -1288,6 +1288,10 @@
         // CONFIG - ElevenLabs TTS (la API key vive en .env — no poner aquí)
         // ===============================================
         const ELEVENLABS_MODEL    = "eleven_turbo_v2_5";
+
+        // CONFIG - Pixabay imágenes
+        const PIXABAY_KEY = '56390879-fe458bc1c65276d628a42c172';
+        const pixabayCache = {};
         let   activeVoiceId       = "XrExE9yKIg1WjnnlVkGX"; // Matilda por defecto
         let   activeTTSEngine     = "elevenlabs"; // "elevenlabs" | "browser"
 
@@ -1637,14 +1641,31 @@
             const catEmoji = { certification:'📚', science:'🔬', content:'🌍', custom:'⭐' };
             imgEl.style.display = 'block';
             fallback.classList.add('hidden');
-            imgEl.onerror = function () {
-                this.onerror = null; // evitar loops
-                this.style.display = 'none';
-                document.getElementById('word-fallback-label').textContent = current.w;
+            imgEl.onerror = async function () {
+                this.onerror = null;
+                const word = current.w;
+                // Buscar en Pixabay
+                try {
+                    let url = pixabayCache[word];
+                    if (!url) {
+                        const q = encodeURIComponent(word);
+                        const res = await fetch(`https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${q}&image_type=photo&safesearch=true&per_page=3&lang=en`);
+                        const data = await res.json();
+                        url = data.hits?.[0]?.webformatURL || null;
+                        pixabayCache[word] = url;
+                    }
+                    if (url) {
+                        imgEl.src = url;
+                        imgEl.style.display = 'block';
+                        return;
+                    }
+                } catch(e) {}
+                // Fallback emoji si Pixabay falla
+                imgEl.style.display = 'none';
                 document.getElementById('word-fallback-emoji').textContent = catEmoji[state.currentCategory] || '🐝';
                 fallback.classList.remove('hidden');
             };
-            imgEl.src = imgPath; // asignar DESPUÉS de onerror para no perder el evento
+            imgEl.src = imgPath;
 
             // Progreso
             const pct = (state.currentIndex / state.playlist.length) * 100;
