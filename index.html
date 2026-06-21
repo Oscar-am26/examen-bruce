@@ -487,19 +487,13 @@
                         <span id="ipa-text" class="font-mono text-sm text-slate-500 bg-slate-50 px-3 py-0.5 rounded-full border border-slate-200 tracking-wide"></span>
                     </div>
 
-                    <!-- 3 modos de entrada -->
-                    <div class="grid grid-cols-3 rounded-xl overflow-hidden border-2 border-slate-200 text-xs font-bold shrink-0">
-                        <button id="tab-keyboard" onclick="switchInputMode('keyboard')"
-                            class="py-2 flex items-center justify-center gap-1 bg-white text-slate-700 border-r border-slate-200 transition-all">
-                            <i class="fas fa-keyboard text-[9px]"></i>Teclado
-                        </button>
-                        <button id="tab-torneo" onclick="switchInputMode('torneo')"
-                            class="py-2 flex items-center justify-center gap-1 text-slate-400 transition-all hover:bg-slate-50 border-r border-slate-200">
-                            🏆 Torneo
-                        </button>
+                    <!-- Solo modo Batalla -->
+                    <div class="rounded-xl overflow-hidden border-2 border-red-200 text-xs font-bold shrink-0">
+                        <button id="tab-keyboard" onclick="switchInputMode('keyboard')" class="hidden"></button>
+                        <button id="tab-torneo" onclick="switchInputMode('torneo')" class="hidden"></button>
                         <button id="tab-battle" onclick="switchInputMode('battle')"
-                            class="py-2 flex items-center justify-center gap-1 text-slate-400 transition-all hover:bg-slate-50">
-                            ⚔️ Batalla
+                            class="w-full py-2 flex items-center justify-center gap-1 bg-red-50 text-red-700 border-b-2 border-red-400">
+                            ⚔️ Modo Batalla
                         </button>
                     </div>
 
@@ -2289,7 +2283,7 @@
         // ===============================================
         // 7. MODOS DE ENTRADA
         // ===============================================
-        let currentInputMode = 'keyboard';
+        let currentInputMode = 'battle';
 
         const MODE_CONFIG = {
             keyboard: { tab:'tab-keyboard', active:'bg-white text-slate-700 border-b-2 border-yellow-400'       },
@@ -2426,20 +2420,14 @@
             if (age > 0) localStorage.setItem('kb_age', age);
             document.getElementById('age-modal').classList.add('hidden');
             if (age <= 0) return;
-            switchInputMode('keyboard');
+            switchInputMode('battle');
         }
 
         // Init
         window.onload = () => {
             loadVoices();
             entInit();
-
-            // Age modal is now handled by onUserReady() after user selection
-            const savedAge = parseInt(localStorage.getItem('kb_age') || '0');
-            if (savedAge) {
-                const mode = savedAge <= 7 ? 'touch' : savedAge <= 10 ? 'piano' : 'keyboard';
-                switchInputMode(mode);
-            }
+            switchInputMode('battle');
         };
 
         // Enter key support
