@@ -1642,10 +1642,18 @@
                 try {
                     let url = pixabayCache[word];
                     if (!url) {
-                        const q = encodeURIComponent(word);
-                        const res = await fetch(`https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${q}&image_type=photo&safesearch=true&per_page=3&lang=en`);
+                        const catSuffix = { science: ' science nature', certification: ' kids school', content: ' kids' };
+                        const suffix = catSuffix[state.currentCategory] || '';
+                        const q = encodeURIComponent(word + suffix);
+                        const res = await fetch(`https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${q}&image_type=photo&safesearch=true&per_page=5&lang=en&order=popular`);
                         const data = await res.json();
                         url = data.hits?.[0]?.webformatURL || null;
+                        // Si no hay resultado, intentar solo la palabra sin sufijo
+                        if (!url && suffix) {
+                            const res2 = await fetch(`https://pixabay.com/api/?key=${PIXABAY_KEY}&q=${encodeURIComponent(word)}&image_type=illustration&safesearch=true&per_page=3&lang=en`);
+                            const data2 = await res2.json();
+                            url = data2.hits?.[0]?.webformatURL || null;
+                        }
                         pixabayCache[word] = url;
                     }
                     if (url) {
@@ -2346,7 +2354,7 @@
                 hide('text-input-row');
                 show('battle-panel');
                 document.getElementById('action-btn').classList.add('hidden');
-                // Si ya hay una palabra cargada, iniciar batalla
+                document.getElementById('game-image-area').style.maxHeight = '14vh';
                 if (state.playlist.length > 0 && state.currentIndex < state.playlist.length) {
                     initBattle();
                 }
@@ -3067,7 +3075,7 @@
                     setTimeout(() => { completeBattle(false); }, 2800);
                 } else {
                     const restantes = state.lives === 1 ? '1 ❤️ restante' : `${state.lives} ❤️ restantes`;
-                    showBattleResult(false, `❌ Era "${expected}" · La niebla avanza · ${restantes}`);
+                    showBattleResult(false, `❌ Letra incorrecta · La niebla avanza · ${restantes}`);
                     setTimeout(() => hideBattleResult(), 1800);
                 }
             }
