@@ -188,12 +188,12 @@
 
         /* ---- Phonics A-Z Keyboard ---- */
         .ph-key {
-            height: clamp(28px, 5.5vw, 38px);
-            border-radius: 7px;
+            height: clamp(30px, 6.5vw, 44px);
+            border-radius: 8px;
             border-bottom: 3px solid rgba(0,0,0,0.22);
             display: flex; align-items: center; justify-content: center;
             font-family: 'Fredoka', sans-serif;
-            font-weight: 900; font-size: clamp(11px, 2.5vw, 15px);
+            font-weight: 900; font-size: clamp(12px, 3vw, 18px);
             color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.25);
             cursor: pointer; user-select: none; -webkit-user-select: none;
             touch-action: manipulation;
@@ -437,7 +437,7 @@
                 </div>
 
                 <!-- Área Visual Central -->
-                <div id="game-image-area" class="min-h-0 bg-slate-50 flex items-center justify-center p-4 relative group" style="flex:1 1 0;max-height:28vh;overflow:visible;transition:max-height 0.25s ease">
+                <div id="game-image-area" class="min-h-0 bg-slate-50 flex items-center justify-center p-4 relative group" style="flex:1 1 0;max-height:40vh;overflow:visible;transition:max-height 0.25s ease">
 
                     <!-- IMAGEN DE LA PALABRA (PNG) -->
                     <img id="word-img" src=""
@@ -515,7 +515,7 @@
                     </div>
 
                     <!-- Panel Batalla -->
-                    <div id="battle-panel" class="hidden flex-col gap-1 w-full">
+                    <div id="battle-panel" class="hidden flex-col gap-2 w-full">
                         <!-- Barra de peligro (densidad de niebla) -->
                         <div class="flex items-center gap-2 px-1">
                             <span class="text-xs select-none shrink-0">☀️</span>
@@ -663,6 +663,7 @@
                     <p id="tts-engine-label" class="text-xs text-yellow-600 font-semibold">
                         <i class="fas fa-bolt"></i> Usando ElevenLabs — requiere internet.
                     </p>
+                    <p class="text-xs text-slate-400 mt-1">⚠️ Las voces ElevenLabs requieren plan de pago. Si no suenan, selecciona una voz del Navegador abajo.</p>
                 </div>
             </div>
 
@@ -2568,7 +2569,7 @@
             if (age > 0) localStorage.setItem('kb_age', age);
             document.getElementById('age-modal').classList.add('hidden');
             if (age <= 0) return;
-            switchInputMode('battle');
+            switchInputMode('keyboard');
         }
 
         // Init
@@ -3028,10 +3029,10 @@
             // Rows Q-P, A-L, Z-M (max-width keeps all keys same size as the 10-key top row)
             QWERTY_ROWS.forEach(row => {
                 const rowDiv = document.createElement('div');
-                rowDiv.className = 'flex justify-center gap-0.5';
+                rowDiv.className = 'flex justify-center gap-1';
                 row.forEach(letter => {
                     const btn = makeBattleKey(letter, letter);
-                    btn.style.maxWidth = '36px';
+                    btn.style.maxWidth = '42px';
                     rowDiv.appendChild(btn);
                 });
                 c.appendChild(rowDiv);
