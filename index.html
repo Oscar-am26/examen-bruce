@@ -484,7 +484,7 @@
 
                     <!-- IPA Fonética -->
                     <div id="ipa-display" class="hidden text-center">
-                        <span id="ipa-text" class="font-mono text-sm text-slate-500 bg-slate-50 px-3 py-0.5 rounded-full border border-slate-200 tracking-wide"></span>
+                        <span id="ipa-text" class="font-mono text-sm text-slate-500 bg-slate-50 px-3 py-0.5 rounded-lg border border-slate-200 tracking-wide inline-block max-w-full break-words"></span>
                     </div>
 
                     <!-- Solo modo Batalla -->
@@ -1246,19 +1246,22 @@
             return WORD_META[word.toLowerCase()] || null;
         }
 
+        const IPA_DATA = {"alien":"/ˈeɪ.li.ən/","aunt":"/ɑ(ː)nt/","badminton":"/ˈbæd.mɪn.tən/","baseball cap":"/ˈbeɪs.bɔːl/ /kæp/","bat":"/bæt/","bean":"/biːn/","board game":"/bɔːd/ /ɡeɪm/","bookshop":"/ˈbʊkʃɒp/","bounce":"/baʊns/","bread":"/bɹeːd/","breakfast":"/ˈbɹɛkfəst/","burger":"/ˈbɜː(ɹ)ɡə(ɹ)/","can":"/ˈkæn/","carrot":"/ˈkæɹ.ət/","chips":"/tʃɪps/","classmate":"/ˈklɑːs.meɪt/","coconut":"/ˈkəʊ.kə.nʌt/","count":"/kaʊnt/","dinner":"/ˈdɪnə/","dress":"/dɹɛs/","drink":"/dɹɪŋk/","draw":"/dɹɔː/","drive":"/dɹaɪv/","driver":"/ˈdɹaɪ.və(ɹ)/","farm":"/fɑːɹm/","gate":"/ɡeɪt/","give":"/ɡɪv/","girl":"/ɡɵːl/","glasses":"/ˈɡlasɪz/","go home":"/ɡəʉ/ /(h)əʊm/","grape":"/ɡɹeɪp/","gray":"/ɡɹeɪ/","hobby":"/ˈhɒ.bi/","helicopter":"/ˈheliˌkɔptə(ɹ)/","juice":"/d͡ʒuːs/","jungle":"/ˈdʒʌŋ.ɡ(ə)l/","keyboard":"/ˈkiːbɔːd/","know":"/nəʊ/","lemon":"/ˈlɛmən/","look":"/lʊk/","lorry":"/ˈlɒɹi/","man":"[mɛn]","meatball":"/ˈmiːtbɔːl/","monster":"/ˈmɒnstə(ɹ)/","motorbike":"/ˈmoʊtərbaɪk/","onion":"/ˈʌŋjɪn/","paint":"/peɪnt/","parents":"/ˈpɛəɹənts/","pea":"/piː/","pear":"/pɛr/","pick up":"/pɪk/ /ap/","pineapple":"/ˈpaɪnəpəl/","potato":"/pəˈteɪ.təʊ/","racket":"/ˈɹækɪt/","ride":"/ɹaɪd/","rice":"/ɹaɪs/","robot":"/ˈɹoʊbət/","sad":"/sæd/","say":"/seɪ/","sheep":"/ʃiːp/","shirt":"/ʃɜːt/","shop":"/ʃɒp/","ship":"/ʃɪp/","skirt":"/skɜːt/","snail":"/sneɪl/","sport":"/spɔːt/","stand":"/stænd/","store":"/stɔː/","street":"/stɹiːt/","sweater":"/ˈswetə/","teacher":"/ˈtiːt͡ʃə/","television":"/ˈtɛləˌvɪʒən/","tell":"/tɛl/","thanks":"/θæŋks/","t-shirt":"/ˈtiːʃɜːt/","town":"/taʊn/","wave":"/weɪv/","winner":"/ˈwɪnə/","year":"/jɪə/","zoo":"/zuː/","air":"/ˈɛə/","appliance":"/əˈplaɪəns/","around":"/əˈɹaʊnd/","axis":"/ˈæksəs/","battery":"/ˈbætəɹi/","battery holder":"/ˈbætəɹi/ /ˈhəʊldə/","basalt":"/ˈbæsɒlt/","breathe":"/bɹiːð/","cable":"/keɪ.bl/","cell":"/sɛl/","charge":"/t͡ʃɑːd͡ʒ/","circuit":"[ˈsəɾ.kɪʈ]","clay":"/kleɪ/","climate change":"/ˈklaɪmɪt/ /tʃeɪndʒ/","coal":"/koʊl/","color":"/ˈkʌlər/","compressed":"/kəmˈprɛst/","crust":"/krʌst/","dangerous":"/ˈdeɪndʒərəs/","day":"/deɪ/","damaged":"/ˈdæmɪdʒd/","environmentally friendly":"/ɪnˌvaɪrənˈmɛntli/ /ˈfrɛndli/","extinct":"/ɪkˈstɪŋkt/","factory":"/ˈfæktri/","farming":"/ˈfɑːrmɪŋ/","globe":"/ɡloʊb/","granite":"/ˈɡrænɪt/","hardness":"/ˈhɑːrdnɪs/","harm":"/hɑːrm/","harmful":"/ˈhɑːrmfʊl/","hazard":"/ˈhæzərd/","layer":"/ˈleɪər/","limestone":"/ˈlaɪmstoʊn/","living thing":"/ˈlɪvɪŋ/ /θɪŋ/","marble":"/ˈmɑːbəl/","medicine":"/ˈmed(ɪ).sn̩/","mining":"/ˈmaɪnɪŋ/","need":"/niːd/","night":"/naɪt/","orbit":"/ˈɔː(ɹ)bɪt/","open-pit mine":"/ˈoʊpən/ /pɪt/ /maɪn/","outlet":"/ˈaʊtlɛt/","oxygen":"/ˈɒksɪdʒən/","plug":"/plʌɡ/","plug into":"/plʌɡ/ /ˈɪn.tuː/","pollute":"/pəˈluːt/","pollution":"/pəˈluːʃən/","porous":"/ˈpɔːrəs/","powerful":"/ˈpaʊərfʊl/","protect":"/prəˈtɛkt/","pumice":"/ˈpʌmɪs/","purpose":"/ˈpɜːrpəs/","reach":"/riːtʃ/","rechargeable":"/riːˈtʃɑːrdʒəbəl/","reflect":"/rɪˈflɛkt/","rotate":"/roʊˈteɪt/","safe":"/seɪf/","scratch":"/skrætʃ/","shape":"/ʃeɪp/","shine":"/ʃaɪn/","solar system":"/ˈsoʊlər/ /ˈsɪstəm/","sound":"/saʊnd/","stone":"/stoʊn/","substance":"/ˈsʌbstəns/","supply":"/səˈplaɪ/","switch":"/swɪtʃ/","tree":"/tɹiː/","turn off":"/tɜːn/ /ɔːf/","turn on":"/tɜːn/ /ɒn/","underground mine":"/ˈʌndəɡɹaʊnd/ /maɪn/","unsafe":"/ʌnˈseɪf/","use":"/juːz/","useful":"/ˈjuːsfəl/","volcano":"/vɒlˈkeɪnəʊ/","water":"/ˈwoːtə/","wire":"/waɪə(ɹ)/","work":"/wɜːk/","yogurt maker":"/ˈjəʉɡət/ /ˈmeɪk.ə/","angry":"/ˈæŋ.ɡɹi/","basketball":"/ˈbɑːs.kɪt.bɔːl/","baseball":"/ˈbeɪs.bɔːl/","climb":"/klaɪm/","collage":"/kɒˈlɑːʒ/","colored pencils":"/ˈkʌləɹd/ /ˈpɛnsəlz/","computer mouse":"/kəmˈpjuːtər/ /maʊs/","crescent":"/ˈkɹɛ.sənt/","crane":"/kɹeɪn/","crumple":"/ˈkɹʌmpəl/","cry":"/kɹaɪ̯/","desk drawer":"/dɛsk/ /dɹɔː(ɹ)/","do an interview":"/dʉː/ /æn/ /ˈɪntəvjuː/","drawing":"/ˈdɹɔ.(w)ɪŋ(ɡ)/","easy":"/ˈiːzi/","edge":"/ɛdʒ/","east":"/iːst/","excited":"/ɪkˈsaɪtɪd/","feelings":"/ˈfiːlɪŋz/","fold":"/fəʊld/","forward":"/ˈfoːwəd/","give a concert":"/ɡɪv/ /æɪ/ /ˈkɒnsət/","glue":"/ɡluː/","goat":"/ɡɐ̟ʉt/","golden":"/ˈɡəʊl.dən/","golf":"/ɡɒlf/","have lunch":"/hæv/ /lʌntʃ/","heavy":"/ˈhe.vi/","high":"/haɪ/","hockey":"/ˈhɒki/","horns":"/hɔːnz/","hummingbird":"/ˈhʌmɪnˌbɜːd/","low":"/ləʊ/","make a mistake":"/meɪk/ /æɪ/ /mɪˈsteɪk/","markers":"/ˈmɑːrkərz/","mobile":"/ˈməʊbaɪl/","mountain":"/ˈmaʊntɪn/","movement":"/ˈmuːv.mənt/","mosaic":"/məʊˈzeɪ.ɪk/","musician":"/mjuˈzɪʃən/","nature":"/ˈnæɪ̯tʃə/","nervous":"/ˈnɜːvəs/","notes":"/nəʊts/","oil painting":"/ɔɪl/ /ˈpeɪn.tɪŋ/","origami":"/ˌɒɹɪˈɡɑːmɪ/","oval":"/ˈəʊvəl/","pattern":"/ˈpat(ə)n/","photograph":"/ˈfəʊ.tə.ˌɡɹɑːf/","proud":"/pɹaʊd/","push":"[pʷʊʃ]","pull":"/pʊl/","scissors":"/ˈsɪzəz/","sculpture":"/ˈskʌlptj(ʊ)ə/","seal":"/siːl/","shiny":"/ˈʃaɪni/","sign an autograph":"/saɪn/ /ən/ /ˈɔːtəɡræf/","sleepy":"/ˈsliːpi/","smile":"/ˈsmaɪ.əl/","soccer":"/ˈsɒk.ə/","solo":"/ˈsoʊ.loʊ/","spiral":"/ˈspaɪɹəl/","stapler":"/ˈsteɪplə/","stubborn":"/ˈstʌbən/","suitcase":"/ˈsutkeɪs/","talk to fans":"/toːk/ /tʉː/ /fænz/","tears":"/tiːɹz/","tennis":"/ˈtɛn.ɪs/","the flu":"/ði/ /flʉː/","throw":"/θɹəʊ/","trumpet":"/ˈtɹʌmpɪt/","unhappy":"/ʌnˈhæpi/","wait":"/weɪt/","watercolors":"/ˈwɔːtərkʌlərz/","waves":"/weɪvz/","west":"/wɛst/","wolf":"/wʊlf/","worried":"/ˈwʌɹid/","wrong":"/ɹɒŋ/","yawn":"/jɔːn/"};
+
+        function renderIPA(txt, el, ipa) {
+            txt.innerHTML = ipa.replace(/ə/g, '<span style="color:#f97316;font-weight:bold">ə</span>');
+            el.classList.remove('hidden');
+        }
+
         function showIPA(word) {
             const meta = getWordMeta(word);
             const el   = document.getElementById('ipa-display');
             const txt  = document.getElementById('ipa-text');
             if (!el || !txt) return;
-            if (meta && meta.p) {
-                txt.innerHTML = meta.p.replace(/ə/g, '<span style="color:#f97316;font-weight:bold">ə</span>');
-                el.classList.remove('hidden');
-            } else {
-                el.classList.add('hidden');
-            }
+            const key = word.toLowerCase();
+            const ipa  = (meta && meta.p) ? meta.p : (IPA_DATA[key] || null);
+            if (ipa) { renderIPA(txt, el, ipa); } else { el.classList.add('hidden'); }
         }
-
         function showEtymology(word) {
             const meta = getWordMeta(word);
             if (!meta) return;
